@@ -1,0 +1,211 @@
+<!doctype html>
+<html lang="en-GB">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover" />
+    <title>Listen to the Grid</title>
+    <meta name="description" content="Great Britain's electricity grid, played live as an engraved orchestral score. Press any day since May 2018 as a record." />
+    <meta property="og:title" content="Listen to the Grid" />
+    <meta property="og:description" content="Great Britain's electricity grid, played live as an engraved orchestral score. Press any day since May 2018 as a record." />
+    <meta property="og:type" content="website" />
+    <meta property="og:image" content="og.png" />
+    <meta property="og:image:width" content="1200" />
+    <meta property="og:image:height" content="630" />
+    <meta name="twitter:card" content="summary_large_image" />
+    <meta name="theme-color" content="#f4efe6" />
+    <meta name="color-scheme" content="light" />
+    <link rel="icon" href="favicon.svg" type="image/svg+xml" />
+    <link rel="apple-touch-icon" href="apple-touch-icon.png" />
+    <link rel="preconnect" href="https://fonts.googleapis.com" />
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+    <link
+      rel="stylesheet"
+      href="https://fonts.googleapis.com/css2?family=Bodoni+Moda:ital,opsz,wght@0,6..96,400..800;1,6..96,400..800&family=Libre+Franklin:wght@400..700&family=Noto+Music&display=swap"
+    />
+    <link rel="stylesheet" href="/src/styles.css" />
+  </head>
+  <body>
+    <a class="skip" href="#record">Skip to pressing a record</a>
+    <header class="top">
+      <h1>Listen to the Grid</h1>
+      <p class="lede">Great Britain’s electricity grid, played live as an orchestral score.</p>
+      <p class="status" id="status" role="status">Asking NESO for the latest half-hour…</p>
+    </header>
+    <noscript>
+      <p class="noscript">This piece writes its music and its score in the browser, so it needs JavaScript switched on.</p>
+    </noscript>
+
+    <main>
+      <section class="score" aria-labelledby="score-title">
+        <h2 class="visually-hidden" id="score-title">The score</h2>
+        <div class="score-head">
+          <p class="key"><span class="visually-hidden">Playing in </span><span id="key">Tuning…</span><span class="ossia-key" id="ossia-key" hidden></span></p>
+          <p class="credit" id="credit">
+            <span class="credit-line"><label for="region">Composed by the grid of</label> <select id="region"></select></span>
+            <span id="when-short">&nbsp;</span>
+          </p>
+        </div>
+        <div class="stage" id="stage">
+          <canvas id="score" role="img" aria-label="The score: ten staves, one for each source of power. The half-hours just past are engraved, then the live half-hour is written as it plays."></canvas>
+          <canvas id="cursor" aria-hidden="true"></canvas>
+        </div>
+        <div class="transport" role="group" aria-label="Playback">
+          <button type="button" class="ink-button play" id="play" aria-keyshortcuts="Space" disabled>
+            <svg viewBox="0 0 10 12" width="10" height="12" aria-hidden="true" focusable="false"><path d="M0 0 L10 6 L0 12 Z" /></svg>
+            <span id="play-label">Listen</span>
+          </button>
+          <button type="button" class="text-button ossia-toggle" id="ossia" aria-pressed="false" aria-keyshortcuts="O" aria-controls="ossia-notes">Ossia: fully renewable</button>
+          <button type="button" class="text-button" id="mute" aria-pressed="false" aria-keyshortcuts="M">Mute</button>
+          <label class="volume">
+            <span>Volume</span>
+            <input type="range" id="volume" min="0" max="100" step="1" value="75" aria-keyshortcuts="ArrowUp ArrowDown" />
+          </label>
+          <button type="button" class="text-button" id="yesterday-quick" aria-keyshortcuts="Y" disabled>Yesterday in 60 s</button>
+          <button type="button" class="text-button" id="live-quick" aria-keyshortcuts="L" hidden>Back to live</button>
+          <a class="text-button press-link" href="#record">Press any day as a record</a>
+        </div>
+        <div class="ossia-notes" id="ossia-notes" hidden>
+          <p class="ossia-rule">
+            <strong>Ossia: fully renewable, a hypothetical.</strong> The same moment re-scored as if the grid ran on wind,
+            sun and water alone. Gas, coal, nuclear, biomass, imports and other are set to zero, and their share goes to
+            wind, solar and hydro in proportion to what each really generated. NESO counts all three at 0 g CO₂/kWh, so
+            the ossia plays at 0 g, in D Lydian, <i>luminoso</i>. Switch it on and off as it plays to hear the difference:
+            louder sounds better to most ears, so the ossia is matched to the real grid's loudness first.
+          </p>
+          <p class="ossia-loudness" id="ossia-loudness"></p>
+          <p class="ossia-fallback" id="ossia-fallback" hidden>
+            No wind, sun or water at all this half-hour, so there is nothing to scale up: the ossia gives the whole grid to
+            wind, the renewable that can run at any hour.
+          </p>
+          <table class="ossia-table" id="ossia-table"></table>
+        </div>
+      </section>
+
+      <section class="record" id="record" aria-labelledby="record-title" tabindex="-1">
+        <div class="record-controls">
+          <h2 id="record-title">Any day, pressed as a record</h2>
+          <p>
+            Pick a day since 12 May 2018. The page fetches NESO’s figures for that day and plays all of it through the same
+            orchestra in one minute, one bar an hour, rendered here in your browser. You get the audio file, with the day’s
+            score as its sleeve.
+          </p>
+          <form class="record-form" id="record-form">
+            <label for="record-date">Day</label>
+            <input type="date" id="record-date" required />
+            <button type="submit" class="ink-button" id="record-press">Press the record</button>
+          </form>
+          <p class="record-status" id="record-status" role="status"></p>
+          <div class="record-result" id="record-result" hidden>
+            <div class="record-actions">
+              <button type="button" class="ink-button" id="record-play">Play the record</button>
+              <a class="text-button" id="record-wav" download>Download audio</a>
+              <a class="text-button" id="record-png" download>Download sleeve</a>
+            </div>
+            <dl class="liner" id="record-notes"></dl>
+          </div>
+        </div>
+        <figure class="sleeve-wrap">
+          <canvas id="sleeve" role="img" aria-label="The record's sleeve: the day's score, engraved."></canvas>
+          <figcaption id="sleeve-caption">The sleeve: the whole day engraved, 24 bars, one an hour.</figcaption>
+        </figure>
+      </section>
+
+      <section class="machine" aria-labelledby="machine-title">
+        <div class="machine-head">
+          <h2 id="machine-title">This week</h2>
+          <p>Carbon intensity over the last seven days, with the mode each stretch plays in. Scrub to hear any half-hour, or play yesterday in a minute.</p>
+        </div>
+        <div class="ribbon-wrap">
+          <canvas id="ribbon" aria-hidden="true"></canvas>
+          <input type="range" id="scrub" class="scrub" min="0" max="1" step="1" value="1" aria-label="Moment to listen to, in the last seven days" disabled />
+        </div>
+        <div class="machine-actions">
+          <button type="button" class="ink-button" id="yesterday" aria-keyshortcuts="Y" disabled>Play yesterday in 60 seconds</button>
+          <button type="button" class="text-button" id="onwards" hidden>Play on from here</button>
+          <button type="button" class="text-button" id="live" aria-keyshortcuts="L" hidden>Back to live</button>
+        </div>
+      </section>
+
+      <section class="now" aria-labelledby="now-title">
+        <h2 class="visually-hidden" id="now-title">In plain words</h2>
+        <p class="headline" id="headline">Tuning up…</p>
+        <div class="facts">
+          <p id="mixline"></p>
+          <p id="intensityline"></p>
+          <p class="when" id="when"></p>
+        </div>
+      </section>
+
+      <section class="notes" id="how" aria-labelledby="how-title" tabindex="-1">
+        <div class="notes-intro">
+          <h2 id="how-title">How it sounds</h2>
+          <p>
+            Each source of power has its own staff and its own voice. The bigger its share of Britain’s electricity, the
+            louder it plays: amplitude follows the square root of the share, and the dynamic under its staff, from
+            <i>ppp</i> to <i>ff</i>, says how big a share that is. A source that isn’t generating rests.
+          </p>
+          <p>
+            The music is always in D at 96 beats a minute, in eight-bar phrases that rise to a pause half-way and then come
+            home. Carbon intensity chooses the mode, which the score writes as its key signature: a clean grid plays in the
+            bright modes with an open tone, a dirty one turns minor and closes in, and its drone starts to beat.
+          </p>
+          <p class="key-rule" id="key-rule">
+            The cleaner the grid, the brighter the key: D Lydian below 60 g CO₂/kWh, D major from 60 g, D Mixolydian from
+            110 g, D Dorian from 150 g, D minor from 190 g and D Phrygian from 240 g.
+          </p>
+          <p>
+            The page reads left to right through the last two hours, a bar for each half-hour. The bars before the red
+            cursor are half-hours already past, engraved from their own figures and marked with their time; the last bar
+            is the live half-hour, written note by note as you hear it, and the page moves on a bar when NESO publishes
+            the next one. A replayed day is written an hour a bar and turns its pages as it plays.
+          </p>
+          <ol class="ladder" id="ladder"></ol>
+        </div>
+        <ul class="voices" id="voices"></ul>
+        <div class="about">
+          <h3>About the data</h3>
+          <p>
+            Figures come from the <a href="https://carbonintensity.org.uk/">Carbon Intensity API</a>, published by the
+            National Energy System Operator (NESO, formerly National Grid ESO) under
+            <a href="https://creativecommons.org/licenses/by/4.0/">CC BY 4.0</a>. They cover Great Britain in half-hour
+            settlement periods; NESO marks the generation mix as beta. Intensity is NESO’s measured figure where it has
+            published one and its forecast otherwise, and the page says which.
+          </p>
+          <p>
+            Figures are for the last completed half-hour. Regional figures, chosen under “Composed by the grid of”, are
+            NESO’s modelled estimates rather than measurements, and the page labels them that way.
+          </p>
+          <p>
+            The page asks for the latest half-hour a few minutes after each one is due (every five minutes if it is late)
+            and keeps the week’s history for 25 minutes. Pressing a record costs two requests for its day. If NESO can’t be
+            reached the page says so, and plays a recording of a real day instead, labelled with its date.
+          </p>
+          <h3>Keys</h3>
+          <dl class="keylist">
+            <div><dt><kbd>Space</kbd></dt><dd>Listen, pause, resume</dd></div>
+            <div><dt><kbd>M</kbd></dt><dd>Mute</dd></div>
+            <div><dt><kbd>↑</kbd> <kbd>↓</kbd></dt><dd>Volume</dd></div>
+            <div><dt><kbd>←</kbd> <kbd>→</kbd></dt><dd>Half an hour back or on; with Shift, a day</dd></div>
+            <div><dt><kbd>Y</kbd></dt><dd>Play yesterday in 60 seconds</dd></div>
+            <div><dt><kbd>L</kbd></dt><dd>Back to live</dd></div>
+            <div><dt><kbd>O</kbd></dt><dd>Ossia: hear it fully renewable, and back</dd></div>
+          </dl>
+          <p class="shortcut-toggle">
+            <label><input type="checkbox" id="shortcuts" checked /> Use single-key shortcuts</label>
+            <span>Switch off if they clash with your own keyboard or speech controls.</span>
+          </p>
+        </div>
+      </section>
+    </main>
+
+    <footer class="colophon">
+      <p>
+        Data: Carbon Intensity API, © NESO, <a href="https://creativecommons.org/licenses/by/4.0/">CC BY 4.0</a>, used under the
+        <a href="https://github.com/carbon-intensity/terms">API terms</a>. Engraved in Bodoni Moda and Noto Music; sound made by hand
+        in Web Audio, no samples. Made by Harry Freeman; MIT licensed.
+      </p>
+    </footer>
+    <p class="visually-hidden" id="announcer" aria-live="polite"></p>
+    <script type="module" src="/src/main.ts"></script>
+  </body>
+</html>

@@ -1,0 +1,46 @@
+# Dependencies
+node_modules/
+
+# Build output (dist-next/ is a build made beside a dist/ in use; site/ a served copy)
+dist/
+dist-next/
+site/
+coverage/
+renders/
+
+# Caches
+.vite/
+.cache/
+.eslintcache
+*.tsbuildinfo
+
+# Test runs and temporary browser profiles
+playwright-report/
+test-results/
+.playwright/
+blob-report/
+*.profile/
+browser-profile*/
+
+# Keys and other secrets
+.env
+.env.*
+*.pem
+*.key
+*.p12
+*.pfx
+.npmrc
+secrets/
+
+# Model weights: shared ones live in ~/Personal/.models/, never in a repo
+.models/
+*.onnx
+*.safetensors
+*.gguf
+*.bin
+*.pt
+*.ckpt
+
+# Logs and OS files
+*.log
+.DS_Store

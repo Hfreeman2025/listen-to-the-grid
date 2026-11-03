@@ -1,0 +1,44 @@
+{
+  "name": "listen-to-the-grid",
+  "version": "1.0.0",
+  "private": true,
+  "description": "Great Britain's electricity grid, live, as music.",
+  "license": "MIT",
+  "author": "Harry Freeman",
+  "type": "module",
+  "engines": {
+    "node": ">=22.12.0"
+  },
+  "scripts": {
+    "dev": "vite",
+    "build": "tsc --noEmit && vite build",
+    "preview": "vite preview",
+    "typecheck": "tsc --noEmit",
+    "lint": "eslint .",
+    "test": "vitest run",
+    "check": "npm run typecheck && npm run lint && npm run test && npm run licences",
+    "licences": "node scripts/check-licences.mjs",
+    "record-sample": "node scripts/record-sample.mjs",
+    "shots": "node scripts/shoot.mjs",
+    "measure": "node scripts/measure-audio.mjs",
+    "perf": "node scripts/perf.mjs",
+    "og": "node scripts/og.mjs",
+    "silence": "node scripts/silence-check.mjs"
+  },
+  "dependencies": {
+    "zod": "^4.6.7"
+  },
+  "devDependencies": {
+    "@eslint/js": "~9.39.1",
+    "eslint": "~9.39.5",
+    "globals": "^17.13.0",
+    "playwright": "^1.64.1",
+    "typescript": "~5.9.3",
+    "typescript-eslint": "^8.56.0",
+    "vite": "~7.3.7",
+    "vitest": "^5.0.5"
+  },
+  "overrides": {
+    "argparse": "1.0.10"
+  }
+}
