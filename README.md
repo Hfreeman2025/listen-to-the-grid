@@ -97,6 +97,22 @@ Why not give each fuel its own key, fossil fuels minor and renewables major, sou
 thirds played together clash. The grid-wide key already says it: the cleaner the grid, the brighter the key, from D
 Lydian below 60 g CO₂/kWh to D Phrygian from 240 g.
 
+## The radio, for other pages
+
+`npm run build:radio` builds `dist-radio/`: one ES module, `listen-to-the-grid-radio.js` (39 KB gzipped), with its
+loudness worker in `assets/` (under 1 KB), its types, a README and the licence. It is the piece's own engine,
+conductor and data code from `src/` (`src/radio.ts` is the entry), with no score. Serve the folder as it is and
+`import { createRadio } from './listen-to-the-grid-radio.js'`; `createRadio({ region, version, volume })` returns
+`{ play(), stop(), state, on('state', fn) }`. `play()` must come from a click or key press, and nothing is fetched,
+made or opened before it; `stop()` closes the audio context. `state` is `off`, `loading`, `playing` or `failed`
+with a reason, names the half-hour playing and says when NESO is late; if NESO's live figures can't be had it
+fails and plays nothing, never the recording. `version: 'ossia'` plays the fully renewable hypothetical,
+loudness-matched with BS.1770 as on the page. It fetches only the latest half-hour from
+`https://api.carbonintensity.org.uk` (`/intensity` and `/generation`, or `/regional/regionid/{id}`), so a page with a
+Content-Security-Policy needs `connect-src https://api.carbonintensity.org.uk`, plus `worker-src` for the folder's
+own origin if it plays the ossia, and must credit "Data: Carbon Intensity API, © NESO, CC BY 4.0".
+`node scripts/radio-check.mjs` proves all of this in Chromium, WebKit and Firefox, silently.
+
 ## How it works
 
 ```

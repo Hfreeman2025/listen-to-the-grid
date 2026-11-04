@@ -23,6 +23,11 @@ files. Downloaded from jsDelivr's copy of the @fontsource 5.3.0 packages on 3 No
 IBM Plex is © IBM Corp. (2017 for Mono, 2019 for Sans and Sans Condensed); Noto Music is © 2022 The Noto
 Project Authors. The licence texts are each package's own `LICENSE`, from the same release.
 
+## The radio (`dist-radio/`)
+
+Its code is this repository's (MIT; `LICENSE` ships beside it). The only third-party code bundled into it is zod
+(MIT). It carries no fonts. Its data is NESO's, below: a page that plays it must credit NESO.
+
 ## Data
 
 Carbon Intensity API figures © NESO, [CC BY 4.0](https://creativecommons.org/licenses/by/4.0/), used under the

@@ -12,6 +12,7 @@
   "scripts": {
     "dev": "vite",
     "build": "tsc --noEmit && vite build",
+    "build:radio": "tsc --noEmit && vite build --config vite.radio.config.ts && cp radio/listen-to-the-grid-radio.d.ts radio/README.md LICENSE dist-radio/",
     "preview": "vite preview",
     "typecheck": "tsc --noEmit",
     "lint": "eslint .",
@@ -23,7 +24,8 @@
     "measure": "node scripts/measure-audio.mjs",
     "perf": "node scripts/perf.mjs",
     "og": "node scripts/og.mjs",
-    "silence": "node scripts/silence-check.mjs"
+    "silence": "node scripts/silence-check.mjs",
+    "radio:check": "node scripts/radio-check.mjs"
   },
   "dependencies": {
     "zod": "^4.6.7"

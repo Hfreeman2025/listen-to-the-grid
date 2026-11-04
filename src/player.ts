@@ -3,9 +3,9 @@ import type { Fuel } from './data/schema';
 import { BAR_SECONDS, Conductor, STEP_SECONDS, STEPS_PER_BAR, barEvents, type Bar, type NoteEvent } from './music/conductor';
 import type { Arrangement } from './music/mapping';
 import type { Mode } from './music/theory';
+import type { Version } from './music/versions';
 
-/** Which version of the music sounds: the grid as it is, or the ossia's fully renewable re-scoring. */
-export type Version = 'real' | 'ossia';
+export type { Version } from './music/versions';
 
 /** One bar in both versions, composed together so either can sound from any moment. */
 export interface BarPair {
@@ -59,10 +59,22 @@ export class Player {
     this.origin = this.now() - steps * STEP_SECONDS;
   }
 
+  private timer = 0;
+
   /** Start keeping time, `preRollSeconds` in: the bar under way is composed at once, so the score opens mid-bar. */
   begin(): void {
     this.advance(this.now());
-    setInterval(this.tick, 25);
+    this.timer = window.setInterval(this.tick, 25);
+  }
+
+  /** Stop keeping time and let go of the audio device. The player can't be used again. */
+  async dispose(): Promise<void> {
+    clearInterval(this.timer);
+    this.stopRecord();
+    const ctx = this.ctx;
+    this.engine = null;
+    this.ctx = null;
+    if (ctx && ctx.state !== 'closed') await ctx.close();
   }
 
   get started(): boolean {
@@ -143,21 +155,22 @@ export class Player {
   /**
    * Must be called from a click or key press: browsers only allow sound after
    * a gesture. Calls made while starting share the first one, so a double
-   * click never builds two instruments.
+   * click never builds two instruments. A context already made inside the
+   * gesture (while the data was still on its way) can be handed in.
    */
-  start(): Promise<void> {
+  start(existing?: AudioContext): Promise<void> {
     if (this.ctx) return Promise.resolve();
-    this.starting ??= this.open().finally(() => {
+    this.starting ??= this.open(existing).finally(() => {
       this.starting = null;
     });
     return this.starting;
   }
 
-  private async open(): Promise<void> {
+  private async open(existing?: AudioContext): Promise<void> {
     const nav = navigator as Navigator & AudioSessionNavigator;
     // iOS: play through the silent switch, like a music app.
     if (nav.audioSession) nav.audioSession.type = 'playback';
-    const ctx = new AudioContext({ latencyHint: 'playback' });
+    const ctx = existing ?? new AudioContext({ latencyHint: 'playback' });
     await ctx.resume();
     const musicNow = this.now();
     this.offset = ctx.currentTime - musicNow;

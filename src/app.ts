@@ -5,8 +5,8 @@ import { HALF_HOUR, HOUR, MINUTE, isFresh, londonDay, londonYesterday } from './
 import { LiveFeed, type FeedEvent, type Source } from './feed';
 import { BAR_SECONDS } from './music/conductor';
 import { modeInfo } from './music/harmony';
-import { arrange, type Arrangement } from './music/mapping';
-import { ossiaOf } from './music/ossia';
+import { arrange } from './music/mapping';
+import { arrangementsFor } from './music/versions';
 import type { Mode } from './music/theory';
 import { OssiaLoudness } from './ossia-loudness';
 import { Player, type Version } from './player';
@@ -69,7 +69,7 @@ export class App {
     const snap = this.snapshot();
     if (!snap) throw new Error('no data to play');
     this.player = new Player(
-      arrangements(snap.mix, snap.intensity, null, null),
+      arrangementsFor(snap.mix, snap.intensity, null, null),
       (bars, start) => {
         this.score.addBar(bars, start);
       },
@@ -261,7 +261,7 @@ export class App {
     if (!(replay ? now - this.lastApply > 100 : key !== this.appliedKey)) return;
     const mix = solo ? { ...snap.mix, [solo]: Math.max(snap.mix[solo], 0.3) } : snap.mix;
     const playing = this.position.kind === 'replay' && this.position.playing;
-    this.player.setArrangement(arrangements(mix, snap.intensity, this.player.mode, this.player.ossiaMode), replay ? (playing ? 0.35 : 0.2) : 2.5);
+    this.player.setArrangement(arrangementsFor(mix, snap.intensity, this.player.mode, this.player.ossiaMode), replay ? (playing ? 0.35 : 0.2) : 2.5);
     this.lastApply = now;
     this.appliedKey = key;
   }
@@ -623,8 +623,3 @@ export class App {
   }
 }
 
-/** The arrangement for each version of a moment: the grid as it is, and its fully renewable ossia. */
-function arrangements(mix: GridSnapshot['mix'], grams: number, mode: Mode | null, ossiaMode: Mode | null): Record<Version, Arrangement> {
-  const o = ossiaOf({ mix, grams });
-  return { real: arrange(mix, grams, mode ?? undefined), ossia: arrange(o.mix, o.grams, ossiaMode ?? undefined) };
-}

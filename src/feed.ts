@@ -40,6 +40,7 @@ export class LiveFeed {
   private lastPollAt = 0;
   private polling = false;
   private deferred = false;
+  private stopped = false;
   /** A week already asked for, alongside the latest half-hour, so a page can open full. */
   private week: { region: Region; promise: Promise<GridPeriod[]> } | null;
 
@@ -57,9 +58,16 @@ export class LiveFeed {
   }
 
   start(): void {
+    this.stopped = false;
     this.schedulePoll();
     if (this.source.kind === 'live' && this.source.history !== 'ok') void this.loadHistory();
     else this.week = null;
+  }
+
+  /** Stop polling. Anything in flight is let finish and ignored. */
+  stop(): void {
+    this.stopped = true;
+    clearTimeout(this.pollTimer);
   }
 
   /** Listen from somewhere else: fetch that region's latest half-hour and, alongside, its week. */
@@ -112,6 +120,7 @@ export class LiveFeed {
 
   private schedulePoll(): void {
     clearTimeout(this.pollTimer);
+    if (this.stopped) return;
     const s = this.source;
     const jitter = Math.random() * 40_000;
     const delay = s.kind === 'live' && !s.failedSince ? nextPollDelay(Date.now(), s.latest.start) : 5 * MINUTE;
@@ -131,7 +140,7 @@ export class LiveFeed {
     const s = this.source;
     try {
       const latest = await fetchCurrent(s.kind === 'live' ? s.region : this.wanted);
-      if (s !== this.source) return; // superseded by a region change, which polls for itself
+      if (this.stopped || s !== this.source) return; // stopped, or superseded by a region change, which polls for itself
       if (s.kind === 'live') {
         if (latest.start >= s.latest.start) s.latest = latest;
         s.series = upsertPeriods(s.series, [latest], Date.now() - WEEK - HOUR);
