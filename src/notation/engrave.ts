@@ -422,6 +422,7 @@ export function engraveBar(bar: Bar, o: BarOptions): Engraved {
   f.staves.forEach((s, si) => {
     const y = f.ys[si] ?? 0;
     const items = perStaff[si] ?? [];
+    const staffMarks = marks.length;
     const prevTail = o.restart ? null : (o.tails[si] ?? null);
     const notesOnly = items.filter((it) => !it.rest);
     const active = notesOnly.length > 0;
@@ -507,7 +508,17 @@ export function engraveBar(bar: Bar, o: BarOptions): Engraved {
     if (active && s.entry && (o.firstInSystem || !prevActive)) {
       const first = notesOnly[0];
       const highest = Math.max(4, ...notesOnly.flatMap((it) => (it.note ? it.note.midis.map((m) => staffStep(m, mode, s.clef)) : [])));
-      if (first) marks.push({ k: 'text', x: colX(first.start), y: y - (highest / 2 + 1.2) * sp, text: s.entry, style: 'italic', align: 'left', at: at(first.start) });
+      if (first) {
+        // Over the notes, and lifted clear of any stem or beam of this staff that reaches higher under the word.
+        const x = colX(first.start);
+        const w = textWidth(s.entry, 1.5, sp);
+        let top = y - (highest / 2 + 1.2) * sp + 0.4 * sp;
+        for (const m of marks.slice(staffMarks)) {
+          const e = extent(m, sp);
+          if (e && e.x1 > x && e.x0 < x + w) top = Math.min(top, e.top);
+        }
+        marks.push({ k: 'text', x, y: top - 0.4 * sp, text: s.entry, style: 'italic', align: 'left', at: at(first.start) });
+      }
     }
 
     // Dynamics, where they change and at the start of each system; hairpins

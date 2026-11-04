@@ -16,12 +16,12 @@
     <meta name="color-scheme" content="light" />
     <link rel="icon" href="favicon.svg" type="image/svg+xml" />
     <link rel="apple-touch-icon" href="apple-touch-icon.png" />
-    <link rel="preconnect" href="https://fonts.googleapis.com" />
-    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
-    <link
-      rel="stylesheet"
-      href="https://fonts.googleapis.com/css2?family=Bodoni+Moda:ital,opsz,wght@0,6..96,400..800;1,6..96,400..800&family=Libre+Franklin:wght@400..700&family=Noto+Music&display=swap"
-    />
+    <!-- Type, served from this site. The first screen is set in three faces, loaded first so nothing moves
+         when they arrive: Plex Sans to read, Plex Sans 500 for the controls, Plex Sans Condensed 600 for signs. -->
+    <link rel="preload" href="fonts/ibm-plex-sans-latin-400-normal.woff2" as="font" type="font/woff2" crossorigin />
+    <link rel="preload" href="fonts/ibm-plex-sans-latin-500-normal.woff2" as="font" type="font/woff2" crossorigin />
+    <link rel="preload" href="fonts/ibm-plex-sans-condensed-latin-600-normal.woff2" as="font" type="font/woff2" crossorigin />
+    <link rel="stylesheet" href="fonts/fonts.css" />
     <link rel="stylesheet" href="/src/styles.css" />
   </head>
   <body>
@@ -41,7 +41,7 @@
         <div class="score-head">
           <p class="key"><span class="visually-hidden">Playing in </span><span id="key">Tuning…</span><span class="ossia-key" id="ossia-key" hidden></span></p>
           <p class="credit" id="credit">
-            <span class="credit-line"><label for="region">Composed by the grid of</label> <select id="region"></select></span>
+            <span class="credit-line"><label for="region">Composed by the grid of</label> <select id="region"><option value="gb" selected>Great Britain</option></select></span>
             <span id="when-short">&nbsp;</span>
           </p>
         </div>
@@ -142,7 +142,7 @@
           <p>
             Each source of power has its own staff and its own voice. The bigger its share of Britain’s electricity, the
             louder it plays: amplitude follows the square root of the share, and the dynamic under its staff, from
-            <i>ppp</i> to <i>ff</i>, says how big a share that is. A source that isn’t generating rests.
+            <span class="dynamic" aria-hidden="true">&#x1D18F;&#x1D18F;&#x1D18F;</span><span class="visually-hidden">ppp</span> to <span class="dynamic" aria-hidden="true">&#x1D191;&#x1D191;</span><span class="visually-hidden">ff</span>, says how big a share that is. A source that isn’t generating rests.
           </p>
           <p>
             The music is always in D at 96 beats a minute, in eight-bar phrases that rise to a pause half-way and then come
@@ -201,7 +201,7 @@
     <footer class="colophon">
       <p>
         Data: Carbon Intensity API, © NESO, <a href="https://creativecommons.org/licenses/by/4.0/">CC BY 4.0</a>, used under the
-        <a href="https://github.com/carbon-intensity/terms">API terms</a>. Engraved in Bodoni Moda and Noto Music; sound made by hand
+        <a href="https://github.com/carbon-intensity/terms">API terms</a>. Set in IBM Plex, with the notation in Noto Music, both served from this site under the SIL Open Font License; sound made by hand
         in Web Audio, no samples. Made by Harry Freeman; MIT licensed.
       </p>
     </footer>

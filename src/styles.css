@@ -1,7 +1,9 @@
 /*
  * Identity: an engraved orchestral score. Black ink on score paper, one red
- * (the conductor's pencil) for the cursor, focus and anything live. Bodoni Moda
- * for everything engraved, Libre Franklin for the controls.
+ * (the conductor's pencil) for the cursor, focus and anything live. One type
+ * family, IBM Plex, served from this site: Sans to read, Mono for data and
+ * records, Sans Condensed for signs (the wordmark, headings, labels). Noto
+ * Music engraves the score's symbols.
  */
 :root {
   --paper: #f4efe6;
@@ -11,8 +13,10 @@
   --red: #c23b22;
   /* the same red deepened to 5.9:1 on paper, for small text */
   --red-text: #a8301b;
-  --serif: 'Bodoni Moda', 'Bodoni 72', Didot, 'Times New Roman', serif;
-  --sans: 'Libre Franklin', 'Helvetica Neue', Arial, sans-serif;
+  /* Noto Music after Plex, for the odd sharp or flat in running text. */
+  --sans: 'IBM Plex Sans', 'Noto Music', 'Helvetica Neue', Arial, sans-serif;
+  --mono: 'IBM Plex Mono', 'Noto Music', ui-monospace, Menlo, monospace;
+  --sign: 'IBM Plex Sans Condensed', 'IBM Plex Sans', 'Arial Narrow', sans-serif;
   --gutter: clamp(16px, 3.4vw, 48px);
   --measure: 1560px;
   color-scheme: light;
@@ -87,7 +91,7 @@ a:hover {
   max-width: var(--measure);
   margin: 0 auto 1rem;
   padding: 0 var(--gutter);
-  font-family: var(--serif);
+  font-family: var(--sans);
   font-style: italic;
   font-size: 1.2rem;
 }
@@ -106,10 +110,10 @@ a:hover {
 }
 h1 {
   margin: 0;
-  font-family: var(--serif);
+  font-family: var(--sign);
   font-weight: 600;
-  font-size: 1.05rem;
-  letter-spacing: 0.16em;
+  font-size: 1.1rem;
+  letter-spacing: 0.12em;
   text-transform: uppercase;
 }
 .lede {
@@ -117,14 +121,18 @@ h1 {
   color: var(--ink-soft);
   font-size: 0.95rem;
 }
+/* A box of its own, text from its left edge, so a change of words (asking, live, offline) never moves it. */
 .status {
   margin: 0 0 0 auto;
+  width: 30rem;
+  max-width: 100%;
   font-size: 0.9rem;
   color: var(--ink-soft);
   font-variant-numeric: tabular-nums;
 }
 .status strong {
   color: var(--ink);
+  font-family: var(--sign);
   font-weight: 600;
 }
 .status .live-mark {
@@ -161,13 +169,15 @@ h1 {
   margin: 0;
 }
 .key {
-  font-family: var(--serif);
+  font-family: var(--sans);
   font-style: italic;
   font-size: 1.15rem;
 }
+/* Wide enough for its longest line ("Wednesday 30 September 2026, 23:30–00:00 BST"), so its left edge
+   stays put when the date arrives after the first paint. */
 .credit {
-  font-family: var(--serif);
-  font-style: italic;
+  min-width: 27rem;
+  font-family: var(--sans);
   font-size: 1rem;
   color: var(--ink-soft);
   text-align: right;
@@ -183,7 +193,6 @@ h1 {
 }
 .credit select {
   font: inherit;
-  font-style: italic;
   color: var(--ink);
   background: transparent;
   border: 0;
@@ -210,6 +219,7 @@ h1 {
   font-variant-numeric: lining-nums tabular-nums;
 }
 .credit.replaying #when-short {
+  font-family: var(--mono);
   font-style: normal;
   font-weight: 600;
   font-size: 1.3rem;
@@ -254,7 +264,7 @@ button {
   align-items: center;
   gap: 0.55rem;
   font-family: var(--sans);
-  font-weight: 600;
+  font-weight: 500;
   font-size: 0.95rem;
   padding: 0.5rem 1.05rem;
   min-height: 44px;
@@ -348,8 +358,7 @@ button {
   font-size: 0.95rem;
 }
 .ossia-rule strong {
-  font-family: var(--serif);
-  font-style: italic;
+  font-family: var(--sign);
   font-weight: 600;
   font-size: 1.05rem;
 }
@@ -372,13 +381,14 @@ button {
   font-weight: 400;
 }
 .ossia-table thead th {
-  font-family: var(--serif);
+  font-family: var(--sans);
   font-style: italic;
   color: var(--ink-soft);
   border-bottom: 1px solid var(--rule);
 }
 .ossia-table td {
   text-align: right;
+  font-family: var(--mono);
 }
 .ossia-table tbody th {
   color: var(--ink-soft);
@@ -435,8 +445,8 @@ input[type='range']::-moz-range-thumb {
 }
 
 h2 {
-  font-family: var(--serif);
-  font-weight: 500;
+  font-family: var(--sign);
+  font-weight: 600;
   font-size: clamp(1.6rem, 2.6vw, 2.15rem);
   line-height: 1.1;
   margin: 0;
@@ -473,7 +483,7 @@ h2 {
 }
 .record-form input[type='date'] {
   font: inherit;
-  font-family: var(--sans);
+  font-family: var(--mono);
   font-variant-numeric: tabular-nums;
   color: var(--ink);
   background: transparent;
@@ -513,6 +523,7 @@ h2 {
   color: var(--ink-soft);
 }
 .liner dd {
+  font-family: var(--mono);
   margin: 0;
   font-variant-numeric: tabular-nums;
 }
@@ -530,7 +541,7 @@ h2 {
 }
 .sleeve-wrap figcaption {
   margin-top: 0.7rem;
-  font-family: var(--serif);
+  font-family: var(--sans);
   font-style: italic;
   font-size: 0.95rem;
   color: var(--ink-soft);
@@ -603,7 +614,7 @@ h2 {
 }
 .headline {
   margin: 0;
-  font-family: var(--serif);
+  font-family: var(--sans);
   font-style: italic;
   font-size: clamp(1.45rem, 2.6vw, 2.15rem);
   line-height: 1.2;
@@ -648,9 +659,12 @@ h2 {
   max-width: 34em;
   text-wrap: pretty;
 }
-.notes-intro i {
-  font-family: var(--serif);
-  font-weight: 700;
+/* Dynamics in running text are the engraver's own glyphs, as on the score. */
+.dynamic {
+  font-family: 'Noto Music', var(--sans);
+  font-style: normal;
+  font-size: 1.35em;
+  line-height: 0;
 }
 .ladder {
   list-style: none;
@@ -667,21 +681,25 @@ h2 {
   border-bottom: 1px solid var(--rule);
 }
 .ladder .range {
+  font-family: var(--mono);
   font-variant-numeric: tabular-nums lining-nums;
   font-size: 0.88rem;
   color: var(--ink-soft);
 }
 .ladder .mode-name {
-  font-family: var(--serif);
+  font-family: var(--sign);
+  font-weight: 500;
   font-size: 1.15rem;
 }
 .ladder .mode-name em {
+  font-family: var(--sans);
+  font-weight: 400;
   color: var(--ink-soft);
   font-size: 0.95rem;
   margin-left: 0.35em;
 }
 .ladder .scale {
-  font-family: var(--serif);
+  font-family: var(--mono);
   font-size: 0.95rem;
   color: var(--ink-soft);
   white-space: nowrap;
@@ -710,12 +728,13 @@ h2 {
 }
 .voices h3 {
   margin: 0;
-  font-family: var(--serif);
+  font-family: var(--sign);
   font-weight: 500;
   font-size: 1.3rem;
   line-height: 1.2;
 }
 .voices h3 em {
+  font-family: var(--sans);
   font-weight: 400;
   color: var(--ink-soft);
   font-size: 1.02rem;
@@ -727,7 +746,7 @@ h2 {
   text-wrap: pretty;
 }
 .voices .written {
-  font-family: var(--serif);
+  font-family: var(--sans);
   font-style: italic;
   font-size: 0.95rem;
   color: var(--ink-soft);
@@ -749,7 +768,7 @@ h2 {
   padding-top: 1.4rem;
 }
 .about h3 {
-  font-family: var(--serif);
+  font-family: var(--sign);
   font-weight: 500;
   font-size: 1.3rem;
   margin: 0 0 0.5rem;
@@ -792,9 +811,9 @@ h2 {
   font-size: 0.95rem;
 }
 kbd {
-  font-family: var(--sans);
+  font-family: var(--mono);
   font-size: 0.82rem;
-  font-weight: 700;
+  font-weight: 600;
   color: var(--ink);
 }
 .shortcut-toggle {
@@ -882,6 +901,7 @@ kbd {
     min-height: 4.4rem;
   }
   .credit {
+    min-width: 0;
     text-align: left;
   }
   #score {

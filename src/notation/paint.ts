@@ -6,9 +6,12 @@ import type { GlyphName, Mark } from './engrave';
  * clef drawn at font size 4 × space on the bottom line lands exactly.
  */
 
+/** The engraver's music font: clefs, notes, rests, accidentals, dynamics. Plex has no music symbols. */
 export const MUSIC_FONT = '"Noto Music"';
-export const TEXT_FONT = '"Bodoni Moda", "Bodoni 72", Didot, "Times New Roman", serif';
-export const UI_FONT = '"Libre Franklin", "Helvetica Neue", Arial, sans-serif';
+/** IBM Plex, one family: Sans for words to read (tempo, expression), Mono for data (times, bar numbers), Condensed for signs (names, titles). */
+export const SANS_FONT = '"IBM Plex Sans", "Helvetica Neue", Arial, sans-serif';
+export const MONO_FONT = '"IBM Plex Mono", ui-monospace, Menlo, monospace';
+export const SIGN_FONT = '"IBM Plex Sans Condensed", "IBM Plex Sans", "Arial Narrow", sans-serif';
 /** The conductor's red, darkened for small text: anything live. */
 export const LIVE_INK = '#a8301b';
 
@@ -30,31 +33,37 @@ const CODE: Record<Exclude<GlyphName, 'dynamic'>, string> = {
 const DYNAMIC: Record<string, string> = { p: '\u{1D18F}', m: '\u{1D190}', f: '\u{1D191}' };
 
 /**
- * Every glyph the score draws. Google serves Noto Music in subsets, and a
- * canvas cannot redraw itself when a late subset arrives, so the page waits
- * for all of them (clefs, rests, accidentals, dynamics, the brace) at once.
+ * Every glyph the score draws: clefs, rests, accidentals, dynamics, the brace.
  */
 export const MUSIC_GLYPHS = [...Object.values(CODE), ...Object.values(DYNAMIC), '\u{1D114}'].join('');
 
+/** Every Plex face the canvases draw words in. */
+const TEXT_FACES = [`400 16px ${SANS_FONT}`, `italic 400 16px ${SANS_FONT}`, `600 16px ${SANS_FONT}`, `400 16px ${MONO_FONT}`, `600 16px ${MONO_FONT}`, `500 16px ${SIGN_FONT}`, `600 16px ${SIGN_FONT}`];
+
 /**
- * Resolves once every music glyph can be drawn (or the font has failed, when
- * the system's symbol fonts stand in). WebKit runs the page's script before
- * the font's stylesheet has arrived, when there is no Noto Music to load yet
- * and the browser answers at once with nothing: so wait for the stylesheet
- * and ask again, or a page engraved now would keep fallback glyphs for good.
+ * Resolves once every music glyph and every Plex face the canvases use can be
+ * drawn (or has failed, when system fonts stand in). A canvas cannot redraw
+ * itself when a font arrives late, so the score, the sleeve and the week wait
+ * for this before engraving. WebKit can run the page's script before the font
+ * rules' stylesheet is read, when there is nothing to load yet and the
+ * browser answers at once with nothing: so wait for the stylesheets and ask
+ * again, or a page engraved now would keep fallback glyphs for good.
  */
-export async function musicFontReady(): Promise<unknown> {
-  const spec = `40px ${MUSIC_FONT}`;
-  const faces = await document.fonts.load(spec, MUSIC_GLYPHS);
-  if (faces.length > 0) return faces;
-  const link = document.querySelector<HTMLLinkElement>('link[rel="stylesheet"][href^="https://fonts.googleapis.com/"]');
-  if (link && !link.sheet) {
-    await new Promise((resolve) => {
-      link.addEventListener('load', resolve, { once: true });
-      link.addEventListener('error', resolve, { once: true });
-    });
-  }
-  return document.fonts.load(spec, MUSIC_GLYPHS);
+export async function canvasFontsReady(): Promise<unknown> {
+  const load = (): Promise<FontFace[][]> => Promise.all([document.fonts.load(`40px ${MUSIC_FONT}`, MUSIC_GLYPHS), ...TEXT_FACES.map((f) => document.fonts.load(f))]);
+  const [music] = await load();
+  if (music && music.length > 0) return music;
+  const pending = [...document.querySelectorAll<HTMLLinkElement>('link[rel="stylesheet"]')].filter((l) => !l.sheet);
+  await Promise.all(
+    pending.map(
+      (link) =>
+        new Promise((resolve) => {
+          link.addEventListener('load', resolve, { once: true });
+          link.addEventListener('error', resolve, { once: true });
+        }),
+    ),
+  );
+  return load();
 }
 
 /** Vertical offsets, in staff spaces, from the mark's anchor to the glyph's baseline. */
@@ -101,9 +110,10 @@ export function paintMark(ctx: CanvasRenderingContext2D, m: Mark, sp: number): v
     }
     case 'text': {
       const size = m.size ?? (m.style === 'name' ? 1.55 : m.style === 'tempo' ? 1.75 : m.style === 'cue' ? 1.15 : m.style === 'number' ? 1.25 : 1.5);
-      const face = m.style === 'cue' ? UI_FONT : TEXT_FONT;
-      const weight = m.style === 'tempo' ? '700' : m.style === 'cue' ? '500' : '400';
-      const italic = m.style === 'italic' || m.style === 'number' ? 'italic ' : '';
+      // Names are signs, times and bar numbers are data, tempo and expression are words.
+      const face = m.style === 'name' ? SIGN_FONT : m.style === 'cue' || m.style === 'number' ? MONO_FONT : SANS_FONT;
+      const weight = m.style === 'tempo' ? '600' : m.style === 'name' ? '500' : '400';
+      const italic = m.style === 'italic' ? 'italic ' : '';
       ctx.font = `${italic}${weight} ${size * sp}px ${face}`;
       ctx.textAlign = m.align;
       ctx.textBaseline = m.style === 'name' ? 'middle' : 'alphabetic';

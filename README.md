@@ -110,13 +110,23 @@ NESO Carbon Intensity API ──> zod schemas ──> half-hour series ──> a
   `/generation/{from}/{to}` and `/intensity/{from}/{to}`, regions from `/regional/regionid/{id}` and
   `/regional/intensity/{from}/{to}/regionid/{id}`. Every response is validated with zod, cached copies included.
   The page polls a few minutes after each half-hour is due, keeps the week in `localStorage` for 25 minutes, and
-  enforces its network allowlist with a Content-Security-Policy.
+  enforces its network allowlist with a Content-Security-Policy: scripts, styles and fonts from the page itself,
+  data from NESO, nothing else.
 - **Composition** (`src/music`). Pure, seeded functions. Amplitude is the square root of a fuel's share. Intensity
   picks one of six modes on D (Lydian under 60 g to Phrygian from 240 g, with 5 g of hysteresis). The conductor
   writes a whole bar at a time in eight-bar phrases: one chord a bar, a half cadence at bar four and home to D at
   bar eight, a sung motif that repeats and answers itself, bells that reply in the voice's gaps, and a swell across
   each phrase that the engine plays and the score marks as hairpins. Every note is in the bar's key, so the score
   never needs an accidental.
+- **Type.** One family, IBM Plex: Sans to read, Mono for data and records (the times over the bars, bar numbers,
+  figures, liner notes), Sans Condensed for signs (the wordmark, headings, instrument names). Noto Music draws the
+  notation, which Plex does not have. All self-hosted with `font-display: swap`. The first screen is set in three
+  faces (Sans 400, Sans 500, Condensed 600), and those three are preloaded, so nothing moves when they arrive:
+  layout shift measures 0.00000 at 1440×900 and 390×844 (it was 0.0009 and 0.0013 with the old Google-hosted type).
+  The canvases wait for every face they draw in before engraving. One engine quirk: the preloads carry
+  `crossorigin`, as the Fetch standard loads fonts, and Chromium and Firefox reuse them; WebKit reuses a font
+  preload only without `crossorigin` (and Chromium only with it, both measured), so WebKit fetches those three
+  faces twice and logs a warning. That message is the one the browser checks allow.
 - **Engraving** (`src/notation`). Rhythm spelling that respects the beat and the middle of the bar, ties, rests,
   beams, stems, ledger lines, octave clefs, modal key signatures (D Lydian is three sharps, D Phrygian two flats)
   with double bar lines and cancelling naturals when the key changes, dynamics where they change, entry marks
@@ -178,8 +188,10 @@ advisory (GHSA-g3hv-75wg-m249) in that dev-only lint toolchain. Production depen
 - Data: [Carbon Intensity API](https://carbonintensity.org.uk/) by the National Energy System Operator (NESO,
   formerly National Grid ESO), licensed under [CC BY 4.0](https://creativecommons.org/licenses/by/4.0/) and used
   under its [API terms](https://github.com/carbon-intensity/terms).
-- Type: [Bodoni Moda](https://fonts.google.com/specimen/Bodoni+Moda), [Noto Music](https://fonts.google.com/noto/specimen/Noto+Music)
-  and [Libre Franklin](https://fonts.google.com/specimen/Libre+Franklin), from Google Fonts.
+- Type: [IBM Plex](https://github.com/IBM/plex) (Sans, Mono and Sans Condensed) and
+  [Noto Music](https://github.com/notofonts/music), both under the SIL Open Font License 1.1 and served from the
+  page itself (`public/fonts/`, from @fontsource 5.3.0): no font requests leave the site. Each file, its size, source
+  and licence are listed in [LICENCES.md](LICENCES.md).
 
 ## Licence
 

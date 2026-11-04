@@ -44,6 +44,8 @@ function wavLoudness(bytes) {
 
 const cache = new Map();
 const results = [];
+/** Any request to Google's font servers, per browser: the type is served from the page itself. */
+const fontRequests = new Map();
 const problems = [];
 let browserName = '';
 
@@ -81,8 +83,17 @@ async function session(browser, name, size, options, fn) {
   const context = await silentContext(browser, { ...ctxOptions, acceptDownloads: true });
   const page = await context.newPage();
   const expected = (text) =>
-    (options.offline || options.fail) && /carbonintensity|Failed to load resource|NetworkError|internet connection|ERR_INTERNET_DISCONNECTED|status of 500/i.test(text);
+    ((options.offline || options.fail) && /carbonintensity|Failed to load resource|NetworkError|internet connection|ERR_INTERNET_DISCONNECTED|status of 500/i.test(text)) ||
+    // WebKit reuses a font preload only without `crossorigin`; Chromium only
+    // with it (both measured; see the README's note on type). The page follows the
+    // Fetch standard, where fonts are CORS requests, so WebKit fetches the
+    // three preloaded faces twice and says so. That message, for those three
+    // files, is allowed in WebKit; any other warning still fails.
+    (browserName === 'webkit' && /^The resource \S+\/fonts\/(ibm-plex-sans-latin-(400|500)-normal|ibm-plex-sans-condensed-latin-600-normal)\.woff2 was preloaded using link preload but not used/.test(text));
   page.on('pageerror', (e) => problems.push(`${browserName} ${name}/${size}: ${e.message}`));
+  page.on('request', (r) => {
+    if (/fonts\.(googleapis|gstatic)\.com/.test(r.url())) fontRequests.set(browserName, [...(fontRequests.get(browserName) ?? []), r.url()]);
+  });
   // Playwright's WebKit screenshotter (inPagePrepareForScreenshots, in
   // playwright-core's screenshotter.ts) injects <style>body {}</style> to sync
   // animations, and this page's Content-Security-Policy refuses it. That one
@@ -107,7 +118,7 @@ async function session(browser, name, size, options, fn) {
       if (m.text().startsWith('CSP ')) console.log(`  ${browserName} ${name}: ${m.text()}`);
     });
   }
-  await routeApi(page, options);
+  if (!options.noRoute) await routeApi(page, options);
   if (options.init) await page.addInitScript(options.init);
   await page.goto(new URL(options.query ?? '', base).href, { waitUntil: options.delay || options.slow ? 'domcontentloaded' : 'networkidle' });
   const shot = async (file, opts = {}) => {
@@ -174,18 +185,26 @@ for (const name of browsers) {
       const a = await canvasHash(page);
       await page.waitForTimeout(700);
       check(`live/${size}: the score writes itself before sound starts`, a !== (await canvasHash(page)));
-      if (size === 'desktop' && full) {
+      // Layout shift is a Chromium measurement; the others don't report it.
+      if (full) {
         const cls = await page.evaluate(
           () =>
             new Promise((resolve) => {
               let sum = 0;
+              const moved = [];
               new PerformanceObserver((list) => {
-                for (const e of list.getEntries()) if (!e.hadRecentInput) sum += e.value;
+                for (const e of list.getEntries()) {
+                  if (e.hadRecentInput) continue;
+                  sum += e.value;
+                  for (const src of e.sources) moved.push(`${Math.round(e.startTime)}ms ${src.node?.id ? '#' + src.node.id : (src.node?.nodeName ?? '?')} ${Math.round(src.previousRect.x)}->${Math.round(src.currentRect.x)}`);
+                }
               }).observe({ type: 'layout-shift', buffered: true });
-              setTimeout(() => resolve(sum), 300);
+              setTimeout(() => resolve({ sum, moved }), 300);
             }),
         );
-        check('live/desktop: cumulative layout shift below 0.01', cls < 0.01, cls.toFixed(4));
+        check(`live/${size}: no layout shift as the page, its data and its type arrive`, cls.sum < 0.00005, `${cls.sum.toFixed(5)}${cls.moved.length ? `: ${cls.moved.slice(0, 4).join(', ')}` : ''}`);
+      }
+      if (size === 'desktop' && full) {
         await page.keyboard.press('m');
         check('keys: M mutes', (await page.locator('#mute').getAttribute('aria-pressed')) === 'true');
         await page.keyboard.press('m');
@@ -378,6 +397,16 @@ for (const name of browsers) {
     });
   }
 
+  // Type: the three faces the first screen is set in are preloaded and used,
+  // with nothing intercepted.
+  await session(browser, 'preload', 'desktop', { noRoute: true }, async (page) => {
+    await fonts(page);
+    await page.waitForTimeout(6000);
+    const used = await page.evaluate(() => ['IBM Plex Sans', 'IBM Plex Sans Condensed'].every((f) => document.fonts.check(`16px "${f}"`)) && [...document.fonts].some((f) => f.family.includes('Plex') && f.status === 'loaded'));
+    const preloads = await page.evaluate(() => [...document.querySelectorAll('link[rel="preload"][as="font"]')].length);
+    check('type: three fonts preloaded and used, with no request intercepted', used && preloads === 3, `${preloads} preloads`);
+  });
+
   // The ossia: the same moment re-scored as a fully renewable grid. Counts
   // AudioContexts to prove that switching it never restarts the sound.
   const countContexts = () => {
@@ -507,6 +536,7 @@ for (const name of browsers) {
     });
   }
 
+  check('type: no request to Google Fonts, in any session', !fontRequests.has(name), (fontRequests.get(name) ?? []).slice(0, 2).join(' '));
   await browser.close();
 }
 

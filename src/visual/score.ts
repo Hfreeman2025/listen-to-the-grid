@@ -2,7 +2,7 @@ import { BAR_SECONDS, STEP_SECONDS, type Bar } from '../music/conductor';
 import type { Mode } from '../music/theory';
 import type { BarPair } from '../player';
 import { OSSIA_SCALE, TIER_1, engraveBar, engraveFrame, engraveOssiaFrame, ossiaHeight, staffPositions, tierAbove, type Engraved, type Frame, type Mark, type Tail } from '../notation/engrave';
-import { MUSIC_FONT, TEXT_FONT, musicFontReady, paintMark, paintMarks } from '../notation/paint';
+import { MONO_FONT, MUSIC_FONT, SANS_FONT, canvasFontsReady, paintMark, paintMarks } from '../notation/paint';
 
 export const INK = '#1a1714';
 export const CURSOR = '#c23b22';
@@ -91,7 +91,7 @@ export async function paintBlankPage(canvas: HTMLCanvasElement): Promise<void> {
   };
   draw(false);
   try {
-    await musicFontReady();
+    await canvasFontsReady();
     draw(true);
   } catch {
     // no music font: the staves alone still read as a page
@@ -152,7 +152,7 @@ export class Score {
     this.ctx = ctx;
     this.cursorCtx = cursorCtx;
     this.resize();
-    void musicFontReady().then(() => {
+    void canvasFontsReady().then(() => {
       this.fontsReady = true;
       this.built = null;
     });
@@ -441,7 +441,7 @@ export class Score {
     c.fillStyle = INK;
     c.textBaseline = 'alphabetic';
     c.textAlign = 'left';
-    c.font = `700 ${1.75 * sp}px ${TEXT_FONT}`;
+    c.font = `600 ${1.75 * sp}px ${SANS_FONT}`;
     const tempo = 'Andante';
     const x = f.firstBarX;
     const y2 = Math.min(topLine - tierAbove(this.cueSize) * sp, this.headTop - 0.6 * sp);
@@ -450,10 +450,10 @@ export class Score {
     const tw = c.measureText(tempo).width;
     c.font = `${2.9 * sp}px ${MUSIC_FONT}`;
     c.fillText('\u{1D15F}', x + tw + 0.8 * sp, y2 + 0.15 * sp);
-    c.font = `500 ${1.6 * sp}px ${TEXT_FONT}`;
+    c.font = `400 ${1.6 * sp}px ${SANS_FONT}`;
     c.fillText('= 96', x + tw + 2.2 * sp, y2);
     if (this.firstNumber === null) return;
-    c.font = `italic 400 ${1.35 * sp}px ${TEXT_FONT}`;
+    c.font = `400 ${1.35 * sp}px ${MONO_FONT}`;
     c.textAlign = 'right';
     c.fillText(String(this.firstNumber), x - 0.6 * sp, topLine - TIER_1 * sp);
   }

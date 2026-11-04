@@ -71,3 +71,23 @@ describe('hairpins', () => {
     expect(tiesBack.length).toBeGreaterThan(0);
   });
 });
+
+describe('words over the staff', () => {
+  it('lifts a part’s entry word (l.v.) clear of the stems and beams beneath it', () => {
+    const frame = engraveFrame({ sp: 8, top: 0, width: 1600, bars: 4, mode: 'lydian', short: false, time: true }).frame;
+    const c = new Conductor(21);
+    const sunny: Mix = { solar: 0.35, wind: 0.3, hydro: 0.05, biomass: 0.1, imports: 0.1, nuclear: 0.1, other: 0, coal: 0, gas: 0 };
+    let checked = 0;
+    for (let i = 0; i < 48; i++) {
+      const bar = c.bar(i, arrange(sunny, 40, c.currentMode ?? undefined));
+      const e = engraveBar(bar, { frame, slot: 0, previous: null, tails: [], firstInSystem: true, whole: true });
+      for (const word of e.marks.filter((m): m is Extract<Mark, { k: 'text' }> => m.k === 'text' && m.text === 'l.v.')) {
+        checked++;
+        const right = word.x + 4 * 0.55 * 1.5 * 8;
+        const under = e.marks.filter((m): m is Extract<Mark, { k: 'line' }> => m.k === 'line' && Math.max(m.x1, m.x2) > word.x && Math.min(m.x1, m.x2) < right && Math.min(m.y1, m.y2) < word.y + 8);
+        for (const line of under) expect(Math.min(line.y1, line.y2) - line.w / 2).toBeGreaterThanOrEqual(word.y + 0.4 * 8 - 1e-6);
+      }
+    }
+    expect(checked).toBeGreaterThan(0);
+  });
+});

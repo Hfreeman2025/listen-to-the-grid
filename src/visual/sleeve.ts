@@ -1,6 +1,6 @@
 import type { Bar } from '../music/conductor';
 import { STAVES, engraveBar, engraveFrame, staffPositions, type StaffDef, type Tail } from '../notation/engrave';
-import { MUSIC_FONT, TEXT_FONT, UI_FONT, paintMarks } from '../notation/paint';
+import { MUSIC_FONT, SANS_FONT, SIGN_FONT, paintMarks } from '../notation/paint';
 import { INK } from './score';
 
 export const SLEEVE_PAPER = '#fbf8f2';
@@ -51,24 +51,24 @@ export function drawSleeve(ctx: CanvasRenderingContext2D, size: number, bars: re
   // Head: title centred, dedication beneath, tempo left, the work right.
   ctx.textBaseline = 'alphabetic';
   ctx.textAlign = 'center';
-  ctx.font = `600 ${size * 0.043}px ${TEXT_FONT}`;
+  ctx.font = `600 ${size * 0.043}px ${SIGN_FONT}`;
   ctx.fillText(text.title, size / 2, m + size * 0.04);
-  ctx.font = `italic 400 ${size * 0.021}px ${TEXT_FONT}`;
+  ctx.font = `italic 400 ${size * 0.021}px ${SANS_FONT}`;
   ctx.fillText(text.dedication, size / 2, m + size * 0.075);
   ctx.textAlign = 'left';
-  ctx.font = `700 ${size * 0.0165}px ${TEXT_FONT}`;
+  ctx.font = `600 ${size * 0.0165}px ${SANS_FONT}`;
   ctx.fillText('Andante', m, m + size * 0.112);
   const tw = ctx.measureText('Andante').width;
   ctx.font = `${size * 0.027}px ${MUSIC_FONT}`;
   ctx.fillText('\u{1D15F}', m + tw + size * 0.008, m + size * 0.113);
-  ctx.font = `500 ${size * 0.015}px ${TEXT_FONT}`;
+  ctx.font = `400 ${size * 0.015}px ${SANS_FONT}`;
   ctx.fillText('= 96, one bar an hour', m + tw + size * 0.026, m + size * 0.112);
   ctx.textAlign = 'right';
-  ctx.font = `600 ${size * 0.0125}px ${TEXT_FONT}`;
+  ctx.font = `600 ${size * 0.0125}px ${SIGN_FONT}`;
   ctx.fillText('LISTEN TO THE GRID', size - m, m + size * 0.112);
 
   // The small print at the foot, wrapped to the page, decides how much room it takes.
-  ctx.font = `400 ${size * 0.0118}px ${UI_FONT}`;
+  ctx.font = `400 ${size * 0.0118}px ${SANS_FONT}`;
   const footer = text.footer.flatMap((line) => wrap(ctx, line, size - 2 * m));
   const lineH = size * 0.019;
 
@@ -130,14 +130,14 @@ export function drawSleeve(ctx: CanvasRenderingContext2D, size: number, bars: re
 
   if (text.tacet) {
     ctx.textAlign = 'left';
-    ctx.font = `italic 400 ${size * 0.0165}px ${TEXT_FONT}`;
+    ctx.font = `italic 400 ${size * 0.0165}px ${SANS_FONT}`;
     ctx.fillStyle = INK;
     ctx.fillText(text.tacet, m, size - m - footH - size * 0.004);
   }
 
   // Foot: the data, in small print.
   ctx.textAlign = 'left';
-  ctx.font = `400 ${size * 0.0118}px ${UI_FONT}`;
+  ctx.font = `400 ${size * 0.0118}px ${SANS_FONT}`;
   ctx.fillStyle = '#5a5249';
   footer.forEach((line, i) => {
     ctx.fillText(line, m, size - m - (footer.length - 1 - i) * lineH);

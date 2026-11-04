@@ -9,7 +9,8 @@ async function boot(): Promise<void> {
   const el = elements();
   const region = regionFromSlug(new URLSearchParams(window.location.search).get('region'));
   // Loading: the empty page and the full list of places, while NESO answers.
-  for (const r of REGIONS) el.region.add(new Option(r.name, r.slug, false, r === region));
+  // The page ships with Great Britain already in the list, so the line keeps its width as the rest arrive.
+  el.region.replaceChildren(...REGIONS.map((r) => new Option(r.name, r.slug, false, r === region)));
   el.key.textContent = 'Waiting for the first half-hour';
   void paintBlankPage(el.scoreCanvas);
   // The week is asked for alongside the latest half-hour: the first page

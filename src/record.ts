@@ -13,7 +13,7 @@ import { STAVES } from './notation/engrave';
 import type { Player } from './player';
 import type { Elements } from './ui/elements';
 import { MODE_NAMES, clock, longDay } from './ui/format';
-import { musicFontReady } from './notation/paint';
+import { canvasFontsReady } from './notation/paint';
 import { CURSOR } from './visual/score';
 import { drawSleeve, type SleeveBar, type SleeveText } from './visual/sleeve';
 
@@ -116,7 +116,7 @@ export class RecordPress {
     }).observe(el.sleeve);
     // A canvas can't redraw itself when a font arrives late, so the sleeve
     // waits for every music glyph before it is engraved.
-    void musicFontReady()
+    void canvasFontsReady()
       .catch(() => undefined)
       .then(() => {
         this.fontsReady = true;
@@ -280,7 +280,7 @@ export class RecordPress {
         this.status(`Fetching NESO’s figures for ${date}…`);
         day = await fetchDay(date, region);
       }
-      await musicFontReady().catch(() => undefined);
+      await canvasFontsReady().catch(() => undefined);
       this.fontsReady = true;
       const pressed = this.compose(day, region, this.deps.ossia());
       this.current = pressed;

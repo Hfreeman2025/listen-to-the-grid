@@ -2,7 +2,7 @@ import type { GridPeriod } from '../data/series';
 import { HOUR, londonDayStart } from '../data/time';
 import { MODE_LADDER } from '../music/harmony';
 import { MODE_NAMES, clock, dayOfMonth, weekday } from '../ui/format';
-import { TEXT_FONT, UI_FONT } from '../notation/paint';
+import { MONO_FONT, SANS_FONT } from '../notation/paint';
 import { CURSOR, INK } from './score';
 
 /** Highest intensity the strip is scaled to, in g/kWh. */
@@ -60,7 +60,7 @@ export class Ribbon {
     const y = (g: number): number => bottom - (Math.min(TOP_G, g) / TOP_G) * (bottom - top);
 
     // Mode guides: where each mode begins, named at the right.
-    ctx.font = `italic 400 11px ${TEXT_FONT}`;
+    ctx.font = `italic 400 11px ${SANS_FONT}`;
     ctx.textBaseline = 'middle';
     ctx.textAlign = 'left';
     MODE_LADDER.forEach((band, i) => {
@@ -110,7 +110,7 @@ export class Ribbon {
     ctx.stroke();
 
     // Days: a rule at each midnight, the day above.
-    ctx.font = `500 11px ${UI_FONT}`;
+    ctx.font = `400 11px ${MONO_FONT}`;
     ctx.textBaseline = 'alphabetic';
     for (let d = londonDayStart(t0); d < t1; d = londonDayStart(d + 26 * HOUR)) {
       const dx = x(d);
@@ -138,7 +138,7 @@ export class Ribbon {
     const cx = Math.round(Math.min(w - labelW - 1, Math.max(1, x(cursor)))) + 0.5;
     ctx.fillStyle = CURSOR;
     ctx.fillRect(cx - 1, top - 4, 2, bottom - top + 8);
-    ctx.font = `600 11px ${UI_FONT}`;
+    ctx.font = `600 11px ${MONO_FONT}`;
     const tag = live ? 'now' : clock(cursor);
     const tw = ctx.measureText(tag).width;
     const tx = Math.min(w - labelW - tw - 4, Math.max(2, cx + 5));
