@@ -84,11 +84,11 @@ async function session(browser, name, size, options, fn) {
   const page = await context.newPage();
   const expected = (text) =>
     ((options.offline || options.fail) && /carbonintensity|Failed to load resource|NetworkError|internet connection|ERR_INTERNET_DISCONNECTED|status of 500/i.test(text)) ||
-    // WebKit reuses a font preload only without `crossorigin`; Chromium only
-    // with it (both measured; see the README's note on type). The page follows the
-    // Fetch standard, where fonts are CORS requests, so WebKit fetches the
-    // three preloaded faces twice and says so. That message, for those three
-    // files, is allowed in WebKit; any other warning still fails.
+    // Served by Vite's preview (Vary: Origin, no-cache), WebKit doesn't reuse
+    // a `crossorigin` font preload, and fetches the three preloaded faces
+    // twice; on a plain static server it does reuse them (see the README's
+    // note on type). That message, for those three files, is allowed in
+    // WebKit; any other warning still fails.
     (browserName === 'webkit' && /^The resource \S+\/fonts\/(ibm-plex-sans-latin-(400|500)-normal|ibm-plex-sans-condensed-latin-600-normal)\.woff2 was preloaded using link preload but not used/.test(text));
   page.on('pageerror', (e) => problems.push(`${browserName} ${name}/${size}: ${e.message}`));
   page.on('request', (r) => {

@@ -123,10 +123,13 @@ NESO Carbon Intensity API ──> zod schemas ──> half-hour series ──> a
   notation, which Plex does not have. All self-hosted with `font-display: swap`. The first screen is set in three
   faces (Sans 400, Sans 500, Condensed 600), and those three are preloaded, so nothing moves when they arrive:
   layout shift measures 0.00000 at 1440×900 and 390×844 (it was 0.0009 and 0.0013 with the old Google-hosted type).
-  The canvases wait for every face they draw in before engraving. One engine quirk: the preloads carry
-  `crossorigin`, as the Fetch standard loads fonts, and Chromium and Firefox reuse them; WebKit reuses a font
-  preload only without `crossorigin` (and Chromium only with it, both measured), so WebKit fetches those three
-  faces twice and logs a warning. That message is the one the browser checks allow.
+  The canvases wait for every face they draw in before engraving. One quirk of the test setup: the preloads carry
+  `crossorigin`, as the Fetch standard loads fonts, and Chromium and Firefox reuse them. Served by Vite's preview
+  server, which answers with `Vary: Origin` and `Cache-Control: no-cache`, WebKit did not: it fetched those three
+  faces twice and logged a warning (it reused them only without `crossorigin`, which Chromium then refuses). On a
+  plain static server without those headers, WebKit reused the same preloads once with no warning, so the headers
+  are the likely cause, not WebKit generally. The browser checks allow that one WebKit message, for those three
+  files only.
 - **Engraving** (`src/notation`). Rhythm spelling that respects the beat and the middle of the bar, ties, rests,
   beams, stems, ledger lines, octave clefs, modal key signatures (D Lydian is three sharps, D Phrygian two flats)
   with double bar lines and cancelling naturals when the key changes, dynamics where they change, entry marks
