@@ -1,7 +1,7 @@
 import { describe, expect, it } from 'vitest';
+import { GB, REGIONS, regionFromSlug } from '../src/data/regions';
 import { regionalCurrentResponse, regionalRangeResponse } from '../src/data/schema';
 import { regionalSeries } from '../src/data/series';
-import { GB, REGIONS, regionFromSlug } from '../src/data/regions';
 
 // Shapes copied from real responses on 1 November 2026.
 const southWales = {

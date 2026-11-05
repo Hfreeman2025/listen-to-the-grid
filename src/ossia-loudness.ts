@@ -1,13 +1,13 @@
-import { LoudnessMatcher, MATCH_BARS, PROVISIONAL_TRIM_DB, type Match } from './audio/match';
+import { LoudnessMatcher, MATCH_BARS, type Match, PROVISIONAL_TRIM_DB } from './audio/match';
+import { describeError } from './data/api';
 import type { Mix } from './data/schema';
-import { sampleAt, type GridSnapshot } from './data/series';
+import { type GridSnapshot, sampleAt } from './data/series';
 import { HOUR } from './data/time';
 import type { Source } from './feed';
 import type { Player } from './player';
 import type { Position } from './replay';
-import { describeError } from './data/api';
 import { clock, periodLabel } from './ui/format';
-import { showLoudness, type OssiaTable } from './ui/ossia';
+import { type OssiaTable, showLoudness } from './ui/ossia';
 
 /** A moment to match: what sounds, under a key that changes when it does. */
 interface Moment {
@@ -86,7 +86,11 @@ export class OssiaLoudness {
       moment = at(hour);
       if (hour + HOUR < pos.stopAt) next = at(hour + HOUR);
     } else if (snap) {
-      moment = { key: `${place}|${snap.period.start}|${snap.t}`, g: { mix: snap.mix, grams: snap.intensity }, label: periodLabel(snap.period) };
+      moment = {
+        key: `${place}|${snap.period.start}|${snap.t}`,
+        g: { mix: snap.mix, grams: snap.intensity },
+        label: periodLabel(snap.period),
+      };
     }
     if (!moment) return;
     if (moment.key !== this.moment?.key) {

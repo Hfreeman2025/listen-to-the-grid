@@ -21,7 +21,8 @@ export function installShortcuts(enabled: () => boolean, actions: ShortcutAction
     const target = e.target instanceof Element ? e.target : null;
     if (target?.closest('input, textarea, select, [contenteditable="true"]')) return;
     const onControl = target?.closest('button, a, summary') ?? null;
-    const arrowsOk = !target || target === document.body || target === document.documentElement || target.closest('#stage, .transport') !== null;
+    const arrowsOk =
+      !target || target === document.body || target === document.documentElement || target.closest('#stage, .transport') !== null;
     switch (e.key) {
       case ' ':
         if (onControl || e.repeat) return;

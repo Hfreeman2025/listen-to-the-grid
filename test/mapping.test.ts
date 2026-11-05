@@ -1,11 +1,31 @@
 import { describe, expect, it } from 'vitest';
+import type { Mix } from '../src/data/schema';
 import { brightness, chordForBar, modeForIntensity } from '../src/music/harmony';
 import { arrange, density, dynamicFor, shareToAmp } from '../src/music/mapping';
-import type { Mix } from '../src/data/schema';
 
 // Two real half-hours from the bundled sample, Wednesday 28 October 2026.
-const noon: Mix = { biomass: 0.082, coal: 0, imports: 0.122, gas: 0.121, nuclear: 0.133, other: 0.013, hydro: 0.026, solar: 0.116, wind: 0.387 };
-const evening: Mix = { biomass: 0.078, coal: 0, imports: 0.042, gas: 0.408, nuclear: 0.127, other: 0.076, hydro: 0.049, solar: 0, wind: 0.22 };
+const noon: Mix = {
+  biomass: 0.082,
+  coal: 0,
+  imports: 0.122,
+  gas: 0.121,
+  nuclear: 0.133,
+  other: 0.013,
+  hydro: 0.026,
+  solar: 0.116,
+  wind: 0.387,
+};
+const evening: Mix = {
+  biomass: 0.078,
+  coal: 0,
+  imports: 0.042,
+  gas: 0.408,
+  nuclear: 0.127,
+  other: 0.076,
+  hydro: 0.049,
+  solar: 0,
+  wind: 0.22,
+};
 
 describe('shareToAmp', () => {
   it('plays a quarter share at half amplitude and silences nothing', () => {
@@ -118,7 +138,14 @@ describe('arrange: a calm evening peak at 194 g', () => {
 
 describe('dynamicFor', () => {
   it('prints a dynamic for each share, and tacet for silence', () => {
-    expect(['gas', 'wind', 'nuclear', 'biomass', 'hydro', 'solar'].map((f) => dynamicFor(evening[f as keyof Mix]))).toEqual(['f', 'mf', 'mp', 'p', 'pp', 'tacet']);
+    expect(['gas', 'wind', 'nuclear', 'biomass', 'hydro', 'solar'].map((f) => dynamicFor(evening[f as keyof Mix]))).toEqual([
+      'f',
+      'mf',
+      'mp',
+      'p',
+      'pp',
+      'tacet',
+    ]);
     expect(dynamicFor(0.5)).toBe('ff');
     expect(dynamicFor(0.01)).toBe('ppp');
   });

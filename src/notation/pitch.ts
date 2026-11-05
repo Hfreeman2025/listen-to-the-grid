@@ -1,4 +1,4 @@
-import { MODE_STEPS, TONIC, type Mode } from '../music/theory';
+import { MODE_STEPS, type Mode, TONIC } from '../music/theory';
 
 /**
  * Where notes sit on a staff. Positions are staff steps from the middle line:
@@ -68,7 +68,7 @@ export interface KeySignature {
 }
 
 /** How many sharps (positive) or flats (negative) each mode on D carries. */
-export const KEY_ACCIDENTALS: Record<Mode, number> = {
+const KEY_ACCIDENTALS: Record<Mode, number> = {
   lydian: 3,
   ionian: 2,
   mixolydian: 1,

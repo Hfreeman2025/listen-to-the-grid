@@ -1,9 +1,17 @@
 import { describe, expect, it } from 'vitest';
-import { REPLAY_SPEED, ReplayTrace, advance, nextDownbeat, sampleHold, type Replay } from '../src/replay';
+import { advance, nextDownbeat, REPLAY_SPEED, type Replay, ReplayTrace, sampleHold } from '../src/replay';
 
 const HOUR = 3_600_000;
 const day = Date.UTC(2026, 9, 31);
-const replay = (over: Partial<Replay> = {}): Replay => ({ kind: 'replay', t: day, playing: true, startsAt: 10, span: null, stopAt: day + 24 * HOUR, ...over });
+const replay = (over: Partial<Replay> = {}): Replay => ({
+  kind: 'replay',
+  t: day,
+  playing: true,
+  startsAt: 10,
+  span: null,
+  stopAt: day + 24 * HOUR,
+  ...over,
+});
 
 describe('advance', () => {
   it('plays a day in a minute: 2.5 s of music is one hour of data', () => {

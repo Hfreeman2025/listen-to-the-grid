@@ -18,12 +18,18 @@ describe('describeState', () => {
   it('calls fresh national data live and says when the next half-hour is due', () => {
     const r = describeState({ period, source: live(), playback: 'live' });
     expect(text(r.statusHtml)).toBe('Live: 11:30–12:00 GMT');
-    expect(text(r.whenHtml)).toBe('Live. The latest half-hour NESO has published: 11:30–12:00 GMT, Sunday 1 November 2026. Checked at 12:04; the next is due shortly after 12:30.');
+    expect(text(r.whenHtml)).toBe(
+      'Live. The latest half-hour NESO has published: 11:30–12:00 GMT, Sunday 1 November 2026. Checked at 12:04; the next is due shortly after 12:30.',
+    );
     expect(r.offline).toBe(false);
   });
 
   it('never calls the recorded sample live, and dates it', () => {
-    const r = describeState({ period: { start: Date.UTC(2026, 9, 28, 11, 0), end: Date.UTC(2026, 9, 28, 11, 30) }, source: { kind: 'sample', reason: 'no network connection' }, playback: 'replay-held' });
+    const r = describeState({
+      period: { start: Date.UTC(2026, 9, 28, 11, 0), end: Date.UTC(2026, 9, 28, 11, 30) },
+      source: { kind: 'sample', reason: 'no network connection' },
+      playback: 'replay-held',
+    });
     expect(text(r.statusHtml)).toBe('Offline. Playing a recorded sample: Wednesday 28 October 2026.');
     expect(r.whenHtml).not.toMatch(/\bLive\b/);
     expect(text(r.whenHtml)).toContain('nothing here is live');
@@ -49,10 +55,16 @@ describe('describeState', () => {
 
   it('keeps the status line steady while a replay plays', () => {
     const playing = describeState({ period, source: live(), playback: 'replay-playing' });
-    const later = describeState({ period: { start: period.start + 3_600_000, end: period.end + 3_600_000 }, source: live(), playback: 'replay-playing' });
+    const later = describeState({
+      period: { start: period.start + 3_600_000, end: period.end + 3_600_000 },
+      source: live(),
+      playback: 'replay-playing',
+    });
     expect(playing.statusHtml).toBe(later.statusHtml);
     expect(text(playing.statusHtml)).toBe('Replaying Sunday 1 November 2026');
-    expect(text(describeState({ period, source: live(), playback: 'replay-held' }).statusHtml)).toBe('Replaying Sun 1 Nov, 11:30–12:00 GMT');
+    expect(text(describeState({ period, source: live(), playback: 'replay-held' }).statusHtml)).toBe(
+      'Replaying Sun 1 Nov, 11:30–12:00 GMT',
+    );
   });
 
   it('escapes text before it reaches the page', () => {

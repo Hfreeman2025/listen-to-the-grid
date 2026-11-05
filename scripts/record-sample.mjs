@@ -22,7 +22,10 @@ function londonMidnight(isoDate) {
   for (const offsetHours of [0, 1]) {
     const t = Date.UTC(y, m - 1, d, -offsetHours);
     const local = new Intl.DateTimeFormat('en-GB', {
-      timeZone: 'Europe/London', hour: '2-digit', minute: '2-digit', hourCycle: 'h23',
+      timeZone: 'Europe/London',
+      hour: '2-digit',
+      minute: '2-digit',
+      hourCycle: 'h23',
     }).format(t);
     if (local === '00:00') return t;
   }
@@ -55,9 +58,7 @@ intensity.data = intensity.data.filter(inDay);
 
 const expected = Math.round((end - start) / (30 * 60e3));
 if (generation.data.length !== expected || intensity.data.length !== expected) {
-  throw new Error(
-    `expected ${expected} periods, got ${generation.data.length} generation / ${intensity.data.length} intensity`,
-  );
+  throw new Error(`expected ${expected} periods, got ${generation.data.length} generation / ${intensity.data.length} intensity`);
 }
 
 const sample = {

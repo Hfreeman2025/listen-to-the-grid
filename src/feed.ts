@@ -1,19 +1,35 @@
 import { describeError, fetchCurrent, fetchHistory, type Sample } from './data/api';
 import type { Region } from './data/regions';
-import { upsertPeriods, type GridPeriod } from './data/series';
-import { HOUR, MINUTE, isFresh, nextPollDelay } from './data/time';
+import { type GridPeriod, upsertPeriods } from './data/series';
+import { HOUR, isFresh, MINUTE, nextPollDelay } from './data/time';
 
 const WEEK = 7 * 24 * HOUR;
 
 /** Where the figures come from: NESO, or the bundled recording when NESO can't be reached. */
 export type Source =
-  | { kind: 'live'; region: Region; series: GridPeriod[]; latest: GridPeriod; checkedAt: number; failedSince: number | null; history: 'loading' | 'ok' | 'failed' }
+  | {
+      kind: 'live';
+      region: Region;
+      series: GridPeriod[];
+      latest: GridPeriod;
+      checkedAt: number;
+      failedSince: number | null;
+      history: 'loading' | 'ok' | 'failed';
+    }
   | { kind: 'sample'; sample: Sample; series: GridPeriod[]; reason: string };
 
 /** A live source for `region`: just its latest half-hour, or with the week already in hand. */
 export function liveSource(region: Region, latest: GridPeriod, week?: readonly GridPeriod[]): Source {
   const now = Date.now();
-  return { kind: 'live', region, series: week ? upsertPeriods(week, [latest], now - WEEK - HOUR) : [latest], latest, checkedAt: now, failedSince: null, history: week ? 'ok' : 'loading' };
+  return {
+    kind: 'live',
+    region,
+    series: week ? upsertPeriods(week, [latest], now - WEEK - HOUR) : [latest],
+    latest,
+    checkedAt: now,
+    failedSince: null,
+    history: week ? 'ok' : 'loading',
+  };
 }
 
 export type FeedEvent =

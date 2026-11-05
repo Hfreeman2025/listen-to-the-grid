@@ -99,12 +99,15 @@ function infoChunk(tags: RecordTags): Uint8Array {
 
 /** UTF-16 with a byte-order mark, as ID3 v2.3 text frames expect. */
 function utf16(s: string, terminate: boolean): Uint8Array {
-  const units = [0xfeff, ...Array.from(s).flatMap((c) => {
-    const cp = c.codePointAt(0) ?? 0x3f;
-    if (cp < 0x10000) return [cp];
-    const v = cp - 0x10000;
-    return [0xd800 + (v >> 10), 0xdc00 + (v & 0x3ff)];
-  })];
+  const units = [
+    0xfeff,
+    ...Array.from(s).flatMap((c) => {
+      const cp = c.codePointAt(0) ?? 0x3f;
+      if (cp < 0x10000) return [cp];
+      const v = cp - 0x10000;
+      return [0xd800 + (v >> 10), 0xdc00 + (v & 0x3ff)];
+    }),
+  ];
   if (terminate) units.push(0);
   const b = new Uint8Array(units.length * 2);
   units.forEach((u, i) => {
@@ -130,7 +133,9 @@ export function id3Tag(tags: RecordTags, cover?: { mime: string; data: Uint8Arra
     .bytes(text('TPE1', tags.artist))
     .bytes(text('TALB', tags.album))
     .bytes(text('TYER', tags.date.slice(0, 4)))
-    .bytes(frame('COMM', new Writer().bytes(Uint8Array.of(1)).ascii('eng').bytes(utf16('', true)).bytes(utf16(tags.comment, false)).done()));
+    .bytes(
+      frame('COMM', new Writer().bytes(Uint8Array.of(1)).ascii('eng').bytes(utf16('', true)).bytes(utf16(tags.comment, false)).done()),
+    );
   if (cover) {
     frames.bytes(
       frame(
@@ -147,7 +152,12 @@ export function id3Tag(tags: RecordTags, cover?: { mime: string; data: Uint8Arra
     );
   }
   const body = frames.done();
-  return new Writer().ascii('ID3').bytes(Uint8Array.of(3, 0, 0)).bytes(syncsafe(body.length)).bytes(body).done();
+  return new Writer()
+    .ascii('ID3')
+    .bytes(Uint8Array.of(3, 0, 0))
+    .bytes(syncsafe(body.length))
+    .bytes(body)
+    .done();
 }
 
 export function encodeWav(src: PcmSource, tags: RecordTags, cover?: { mime: string; data: Uint8Array }): Uint8Array {

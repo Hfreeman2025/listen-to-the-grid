@@ -3,7 +3,18 @@ import { FUELS, type Mix } from '../src/data/schema';
 import { arrange } from '../src/music/mapping';
 import { FALLBACK, OSSIA_GRAMS, ossiaOf, renewableMix, SILENCED, usesFallback } from '../src/music/ossia';
 
-const mix = (over: Partial<Mix>): Mix => ({ solar: 0, wind: 0, hydro: 0, biomass: 0, imports: 0, nuclear: 0, other: 0, coal: 0, gas: 0, ...over });
+const mix = (over: Partial<Mix>): Mix => ({
+  solar: 0,
+  wind: 0,
+  hydro: 0,
+  biomass: 0,
+  imports: 0,
+  nuclear: 0,
+  other: 0,
+  coal: 0,
+  gas: 0,
+  ...over,
+});
 const sum = (m: Mix): number => FUELS.reduce((s, f) => s + m[f], 0);
 
 // A real-looking autumn evening: 31% wind, 2% hydro, no sun, the rest fossil, nuclear and imports.
@@ -18,7 +29,9 @@ describe('renewableMix', () => {
   });
 
   it('zeroes gas, coal, nuclear, biomass, imports and other', () => {
-    const o = renewableMix(mix({ wind: 0.2, solar: 0.1, hydro: 0.02, gas: 0.3, coal: 0.01, nuclear: 0.15, biomass: 0.08, imports: 0.1, other: 0.04 }));
+    const o = renewableMix(
+      mix({ wind: 0.2, solar: 0.1, hydro: 0.02, gas: 0.3, coal: 0.01, nuclear: 0.15, biomass: 0.08, imports: 0.1, other: 0.04 }),
+    );
     for (const f of SILENCED) expect(o[f]).toBe(0);
   });
 
@@ -63,6 +76,8 @@ describe('ossiaOf', () => {
 describe('keyRule', () => {
   it('states the key ladder in one plain sentence, with its thresholds', async () => {
     const { keyRule } = await import('../src/ui/notes');
-    expect(keyRule()).toBe('The cleaner the grid, the brighter the key: D Lydian below 60 g CO₂/kWh, D major from 60 g, D Mixolydian from 110 g, D Dorian from 150 g, D minor from 190 g and D Phrygian from 240 g.');
+    expect(keyRule()).toBe(
+      'The cleaner the grid, the brighter the key: D Lydian below 60 g CO₂/kWh, D major from 60 g, D Mixolydian from 110 g, D Dorian from 150 g, D minor from 190 g and D Phrygian from 240 g.',
+    );
   });
 });

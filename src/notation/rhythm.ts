@@ -29,7 +29,7 @@ const CHOICES: readonly { value: Value; dotted: boolean; starts: (pos: number) =
   { value: 'sixteenth', dotted: false, starts: () => true },
 ];
 
-export function stepsOf(value: Value, dotted: boolean): number {
+function stepsOf(value: Value, dotted: boolean): number {
   return STEPS[value] * (dotted ? 1.5 : 1);
 }
 

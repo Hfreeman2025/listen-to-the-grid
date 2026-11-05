@@ -5,6 +5,7 @@
   "description": "Great Britain's electricity grid, live, as music.",
   "license": "MIT",
   "author": "Harry Freeman",
+  "repository": "https://github.com/Hfreeman2025/listen-to-the-grid",
   "type": "module",
   "engines": {
     "node": ">=22.12.0"
@@ -16,8 +17,10 @@
     "preview": "vite preview",
     "typecheck": "tsc --noEmit",
     "lint": "eslint .",
+    "format": "biome check --write .",
+    "format:check": "biome check .",
     "test": "vitest run",
-    "check": "npm run typecheck && npm run lint && npm run test && npm run licences",
+    "check": "npm run typecheck && npm run lint && npm run format:check && npm run test && npm run licences",
     "licences": "node scripts/check-licences.mjs",
     "record-sample": "node scripts/record-sample.mjs",
     "shots": "node scripts/shoot.mjs",
@@ -31,6 +34,7 @@
     "zod": "^4.6.7"
   },
   "devDependencies": {
+    "@biomejs/biome": "2.6.4",
     "@eslint/js": "~9.39.1",
     "eslint": "~9.39.5",
     "globals": "^17.13.0",

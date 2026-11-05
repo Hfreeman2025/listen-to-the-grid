@@ -1,10 +1,22 @@
 import { describe, expect, it } from 'vitest';
 import type { Mix } from '../src/data/schema';
-import { Conductor, type Bar } from '../src/music/conductor';
+import { type Bar, Conductor } from '../src/music/conductor';
 import { arrange } from '../src/music/mapping';
-import { engraveBar, engraveFrame, type Engraved, type Frame, type Mark, type Tail } from '../src/notation/engrave';
+import { type Engraved, engraveBar, type Tail } from '../src/notation/engrave';
+import { engraveFrame, type Frame } from '../src/notation/frame';
+import type { Mark } from '../src/notation/marks';
 
-const mix = (wind: number): Mix => ({ solar: 0, wind, hydro: 0.03, biomass: 0.1, imports: 0.1, nuclear: 0.15, other: 0.02, coal: 0, gas: 0.6 - wind });
+const mix = (wind: number): Mix => ({
+  solar: 0,
+  wind,
+  hydro: 0.03,
+  biomass: 0.1,
+  imports: 0.1,
+  nuclear: 0.15,
+  other: 0.02,
+  coal: 0,
+  gas: 0.6 - wind,
+});
 
 /** Eight bars of one phrase, the wind's share given bar by bar. */
 function phrase(winds: number[]): Bar[] {
@@ -15,7 +27,15 @@ function phrase(winds: number[]): Bar[] {
 function engraveSystem(bars: Bar[], frame: Frame, restartAt = -1): Engraved[] {
   let tails: (Tail | null)[] = [];
   return bars.map((bar, slot) => {
-    const e = engraveBar(bar, { frame, slot, previous: bars[slot - 1] ?? null, tails, firstInSystem: slot === 0, whole: true, restart: slot === restartAt });
+    const e = engraveBar(bar, {
+      frame,
+      slot,
+      previous: bars[slot - 1] ?? null,
+      tails,
+      firstInSystem: slot === 0,
+      whole: true,
+      restart: slot === restartAt,
+    });
     tails = e.tails;
     return e;
   });
@@ -84,7 +104,10 @@ describe('words over the staff', () => {
       for (const word of e.marks.filter((m): m is Extract<Mark, { k: 'text' }> => m.k === 'text' && m.text === 'l.v.')) {
         checked++;
         const right = word.x + 4 * 0.55 * 1.5 * 8;
-        const under = e.marks.filter((m): m is Extract<Mark, { k: 'line' }> => m.k === 'line' && Math.max(m.x1, m.x2) > word.x && Math.min(m.x1, m.x2) < right && Math.min(m.y1, m.y2) < word.y + 8);
+        const under = e.marks.filter(
+          (m): m is Extract<Mark, { k: 'line' }> =>
+            m.k === 'line' && Math.max(m.x1, m.x2) > word.x && Math.min(m.x1, m.x2) < right && Math.min(m.y1, m.y2) < word.y + 8,
+        );
         for (const line of under) expect(Math.min(line.y1, line.y2) - line.w / 2).toBeGreaterThanOrEqual(word.y + 0.4 * 8 - 1e-6);
       }
     }

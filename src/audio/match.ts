@@ -14,7 +14,7 @@ import { renderOffline } from './render';
 
 /** Two phrases each way: two measurements of the same moment then agree within about 0.2 LU. */
 export const MATCH_BARS = 16;
-export const MATCH_RATE = 48000;
+const MATCH_RATE = 48000;
 /**
  * Until the moment is measured, the ossia is turned down by the typical gap:
  * 2.2 dB, the median over the bundled sample day (from

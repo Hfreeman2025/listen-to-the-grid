@@ -2,10 +2,10 @@
 // engineer would check first: peak, loudness, clipped samples, and how much
 // the loudness moves (a flat line is a drone; phrases breathe).
 //
-//   node scripts/analyse-wav.mjs shots/v2/yesterday.wav
+//   node scripts/analyse-wav.mjs shots/yesterday.wav   (the record npm run shots keeps)
 import { readFile } from 'node:fs/promises';
 
-const bytes = await readFile(process.argv[2] ?? 'shots/v2/yesterday.wav');
+const bytes = await readFile(process.argv[2] ?? 'shots/yesterday.wav');
 const view = new DataView(bytes.buffer, bytes.byteOffset, bytes.byteLength);
 const tag = (o) => String.fromCharCode(...bytes.subarray(o, o + 4));
 if (tag(0) !== 'RIFF' || tag(8) !== 'WAVE') throw new Error('not a WAV file');
@@ -17,7 +17,8 @@ while (at + 8 <= bytes.length) {
   const id = tag(at);
   const size = view.getUint32(at + 4, true);
   chunks.push(id);
-  if (id === 'fmt ') fmt = { channels: view.getUint16(at + 10, true), rate: view.getUint32(at + 12, true), bits: view.getUint16(at + 22, true) };
+  if (id === 'fmt ')
+    fmt = { channels: view.getUint16(at + 10, true), rate: view.getUint32(at + 12, true), bits: view.getUint16(at + 22, true) };
   if (id === 'data') data = { start: at + 8, size };
   at += 8 + size + (size % 2);
 }

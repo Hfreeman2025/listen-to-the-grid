@@ -1,19 +1,19 @@
 import { z } from 'zod';
 import { GB, type Region } from './regions';
+import sampleJson from './sample-day.json';
 import {
   currentGenerationResponse,
   generationRangeResponse,
   intensityResponse,
   regionalCurrentResponse,
   regionalRangeResponse,
-  sampleDay,
   type SampleDay,
+  sampleDay,
 } from './schema';
-import sampleJson from './sample-day.json';
-import { mergeSeries, regionalSeries, type GridPeriod } from './series';
-import { HALF_HOUR, HOUR, MINUTE, apiTimestamp, halfHourFloor, londonDay, type Span } from './time';
+import { type GridPeriod, mergeSeries, regionalSeries } from './series';
+import { apiTimestamp, HALF_HOUR, HOUR, halfHourFloor, londonDay, MINUTE, type Span } from './time';
 
-export const API_BASE = 'https://api.carbonintensity.org.uk';
+const API_BASE = 'https://api.carbonintensity.org.uk';
 
 export type ApiErrorKind = 'network' | 'timeout' | 'http' | 'schema';
 
@@ -202,7 +202,10 @@ async function loadDay(isoDate: string, region: Region): Promise<Day> {
     const res = await getJson(`/regional/intensity/${range}/regionid/${region.id}`, regionalRangeResponse);
     series = regionalSeries(res.data.data).filter(inDay);
   } else {
-    const [gen, int] = await Promise.all([getJson(`/generation/${range}`, generationRangeResponse), getJson(`/intensity/${range}`, intensityResponse)]);
+    const [gen, int] = await Promise.all([
+      getJson(`/generation/${range}`, generationRangeResponse),
+      getJson(`/intensity/${range}`, intensityResponse),
+    ]);
     series = mergeSeries(gen.data, int.data).filter(inDay);
   }
   if (series.length === 0) throw new ApiError('schema', 'NESO has no figures for that day');

@@ -1,6 +1,6 @@
-import { sampleAt, type GridPeriod } from '../data/series';
+import { type GridPeriod, sampleAt } from '../data/series';
 import { HALF_HOUR, londonDay, londonParts } from '../data/time';
-import { Conductor, type Bar } from './conductor';
+import { type Bar, Conductor } from './conductor';
 import { seedFor } from './day';
 import { arrange } from './mapping';
 

@@ -102,7 +102,7 @@ describe('voiceLead', () => {
     expect(next.map((m) => m % 12).sort((a, b) => a - b)).toEqual([2, 5, 7, 11]);
   });
 
-  it("doubles whichever note moves least when the chord has fewer notes than voices", () => {
+  it('doubles whichever note moves least when the chord has fewer notes than voices', () => {
     // D F# A D -> G major: both Ds hold, F# rises to G, A rises to B.
     const next = voiceLead([50, 54, 57, 62], [7, 11, 2], 48, 74);
     expect(next).toEqual([50, 55, 59, 62]);

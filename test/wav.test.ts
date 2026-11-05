@@ -1,5 +1,5 @@
 import { describe, expect, it } from 'vitest';
-import { encodeWav, id3Tag, toPcm16, type RecordTags } from '../src/audio/wav';
+import { encodeWav, id3Tag, type RecordTags, toPcm16 } from '../src/audio/wav';
 
 const tags: RecordTags = {
   title: 'Wednesday 28 October 2026',
@@ -45,7 +45,10 @@ describe('toPcm16', () => {
 
 describe('encodeWav', () => {
   const left = new Float32Array(1001).map((_, i) => Math.sin(i / 10) * 0.5);
-  const bytes = encodeWav({ sampleRate: 44100, channels: [left, left] }, tags, { mime: 'image/jpeg', data: Uint8Array.of(0xff, 0xd8, 0xff, 0xd9) });
+  const bytes = encodeWav({ sampleRate: 44100, channels: [left, left] }, tags, {
+    mime: 'image/jpeg',
+    data: Uint8Array.of(0xff, 0xd8, 0xff, 0xd9),
+  });
   const found = chunks(bytes);
 
   it('writes a 16-bit stereo format chunk', () => {

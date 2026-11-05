@@ -1,0 +1,52 @@
+/* This week */
+
+.week {
+  max-width: var(--measure);
+  margin: 0 auto;
+  padding: clamp(24px, 3vw, 40px) var(--gutter) clamp(32px, 4vw, 56px);
+  border-top: 1px solid var(--ink);
+}
+.week-head {
+  display: grid;
+  grid-template-columns: auto minmax(0, 40em);
+  gap: 0.4rem 2.5rem;
+  align-items: baseline;
+  margin-bottom: 1rem;
+}
+.week-head p {
+  margin: 0;
+  color: var(--ink-soft);
+}
+.ribbon-wrap {
+  position: relative;
+}
+#ribbon {
+  display: block;
+  width: 100%;
+  height: 132px;
+}
+.scrub {
+  position: absolute;
+  left: 0;
+  right: 0;
+  top: 16px;
+  bottom: 0;
+  width: 100%;
+  height: auto;
+  opacity: 0;
+  cursor: ew-resize;
+}
+.scrub:disabled {
+  cursor: default;
+}
+.ribbon-wrap:has(.scrub:focus-visible) {
+  outline: 2px solid var(--red);
+  outline-offset: 4px;
+}
+.week-actions {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.75rem 1.4rem;
+  align-items: center;
+  margin-top: 1rem;
+}

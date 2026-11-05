@@ -1,6 +1,6 @@
 import type { Mix } from '../data/schema';
-import { BAR_SECONDS, Conductor, STEP_SECONDS, STEPS_PER_BAR, barEvents, type Bar } from '../music/conductor';
-import { arrange, type Arrangement } from '../music/mapping';
+import { BAR_SECONDS, type Bar, barEvents, Conductor, STEP_SECONDS, STEPS_PER_BAR } from '../music/conductor';
+import { type Arrangement, arrange } from '../music/mapping';
 import { AudioEngine } from './engine';
 
 export interface RenderPlan {

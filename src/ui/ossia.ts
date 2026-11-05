@@ -1,9 +1,9 @@
 import { FUELS, type Fuel } from '../data/schema';
 import type { GridPeriod } from '../data/series';
 import { modeInfo } from '../music/harmony';
-import type { MatchState } from '../ossia-loudness';
 import { OSSIA_GRAMS, RENEWABLES, renewableMix, usesFallback } from '../music/ossia';
 import type { Mode } from '../music/theory';
+import type { MatchState } from '../ossia-loudness';
 import { FUEL_NAMES, MODE_NAMES, percent } from './format';
 
 /** Renewables first, as the ossia reads; then everything it silences, in score order. */

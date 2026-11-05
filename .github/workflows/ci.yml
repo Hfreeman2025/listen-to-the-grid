@@ -12,6 +12,12 @@ concurrency:
 permissions:
   contents: read
 
+# Nothing here needs the network beyond npm, and nothing asks NESO: the unit
+# tests use the bundled recorded day and figures written into them. The browser
+# suites (npm run shots, radio:check, perf and silence) drive real Chromium,
+# WebKit and Firefox against NESO's live figures, and the silence check reads
+# macOS power assertions, so they run locally, one browser at a time, and are
+# not part of CI.
 jobs:
   check:
     runs-on: ubuntu-latest
@@ -27,10 +33,14 @@ jobs:
         run: npm run typecheck
       - name: Lint
         run: npm run lint
-      - name: Test
+      - name: Format
+        run: npm run format:check
+      - name: Unit tests
         run: npm test
-      - name: Build
-        run: npx vite build
+      - name: Build the page
+        run: npm run build
+      - name: Build the radio
+        run: npm run build:radio
       - name: Dependency licences (MIT, Apache-2.0, BSD, ISC only)
         run: npm run licences
       - name: Audit production dependencies

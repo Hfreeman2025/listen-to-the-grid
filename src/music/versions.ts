@@ -1,5 +1,5 @@
 import type { Mix } from '../data/schema';
-import { arrange, type Arrangement } from './mapping';
+import { type Arrangement, arrange } from './mapping';
 import { ossiaOf } from './ossia';
 import type { Mode } from './theory';
 

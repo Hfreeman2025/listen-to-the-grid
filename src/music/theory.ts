@@ -1,11 +1,11 @@
 /**
- * Just enough music theory: seven diatonic modes ordered from brightest to
+ * Just enough music theory: six diatonic modes ordered from brightest to
  * darkest, a quantiser that snaps any pitch onto the current scale, chords
  * built inside the mode, and smooth voice leading between them.
  */
 
-export const MODES = ['lydian', 'ionian', 'mixolydian', 'dorian', 'aeolian', 'phrygian'] as const;
-export type Mode = (typeof MODES)[number];
+/** The modes the piece plays in, brightest to darkest. */
+export type Mode = 'lydian' | 'ionian' | 'mixolydian' | 'dorian' | 'aeolian' | 'phrygian';
 
 /** Semitones above the tonic for each mode. */
 export const MODE_STEPS: Record<Mode, readonly number[]> = {

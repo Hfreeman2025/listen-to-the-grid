@@ -42,12 +42,28 @@ describe('integratedLoudness (EBU Tech 3341 minimum requirements)', () => {
   });
 
   it('case 3: the relative gate ignores quiet passages 13 LU down', () => {
-    const l = integratedLoudness(tone(48000, [[10, -36], [60, -23], [10, -36]]), 48000);
+    const l = integratedLoudness(
+      tone(48000, [
+        [10, -36],
+        [60, -23],
+        [10, -36],
+      ]),
+      48000,
+    );
     expect(Math.abs(l.integrated + 23)).toBeLessThanOrEqual(0.1);
   });
 
   it('case 4: the absolute gate drops near-silence, the relative gate the rest', () => {
-    const l = integratedLoudness(tone(48000, [[10, -72], [10, -36], [60, -23], [10, -36], [10, -72]]), 48000);
+    const l = integratedLoudness(
+      tone(48000, [
+        [10, -72],
+        [10, -36],
+        [60, -23],
+        [10, -36],
+        [10, -72],
+      ]),
+      48000,
+    );
     expect(Math.abs(l.integrated + 23)).toBeLessThanOrEqual(0.1);
   });
 

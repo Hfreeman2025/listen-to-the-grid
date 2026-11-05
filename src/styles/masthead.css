@@ -1,0 +1,52 @@
+/* Top line: plain title, one plain sentence, the status */
+
+.top {
+  max-width: var(--measure);
+  margin: 0 auto;
+  padding: 14px var(--gutter) 10px;
+  display: flex;
+  flex-wrap: wrap;
+  align-items: baseline;
+  gap: 0.15rem 1.2rem;
+  border-bottom: 1px solid var(--ink);
+}
+h1 {
+  margin: 0;
+  font-family: var(--sign);
+  font-weight: 600;
+  font-size: 1.1rem;
+  letter-spacing: 0.12em;
+  text-transform: uppercase;
+}
+.lede {
+  margin: 0;
+  color: var(--ink-soft);
+  font-size: 0.95rem;
+}
+/* A box of its own, text from its left edge, so a change of words (asking, live, offline) never moves it. */
+.status {
+  margin: 0 0 0 auto;
+  width: 30rem;
+  max-width: 100%;
+  font-size: 0.9rem;
+  color: var(--ink-soft);
+  font-variant-numeric: tabular-nums;
+}
+.status strong {
+  color: var(--ink);
+  font-family: var(--sign);
+  font-weight: 600;
+}
+.status .live-mark {
+  display: inline-block;
+  width: 0.5em;
+  height: 0.5em;
+  margin-right: 0.45em;
+  background: var(--red);
+  border-radius: 50%;
+  vertical-align: 0.08em;
+}
+.status.offline .live-mark {
+  background: transparent;
+  border: 1.5px solid var(--ink-soft);
+}

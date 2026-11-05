@@ -4,14 +4,19 @@
 // frame, the arrangement changing ten times a second, audio playing).
 //
 //   npm run build && node scripts/perf.mjs
-import { chromium, webkit, firefox } from 'playwright';
-import { launchSilent, silentContext } from './silent.mjs';
-import { readFile, readdir } from 'node:fs/promises';
+
+import { readdir, readFile } from 'node:fs/promises';
 import { gzipSync } from 'node:zlib';
+import { chromium, firefox, webkit } from 'playwright';
 import { preview } from 'vite';
+import { launchSilent, silentContext } from './silent.mjs';
 
 // Serves dist/ by default; DIST=dist-next tests a build made beside a dist/ that is in use.
-const server = await preview({ build: { outDir: process.env.DIST ?? 'dist' }, preview: { host: '127.0.0.1', port: 4189, strictPort: true }, logLevel: 'warn' });
+const server = await preview({
+  build: { outDir: process.env.DIST ?? 'dist' },
+  preview: { host: '127.0.0.1', port: 4189, strictPort: true },
+  logLevel: 'warn',
+});
 const cache = new Map();
 const out = {};
 
@@ -94,7 +99,12 @@ for (const [name, engine] of Object.entries({ chromium, webkit, firefox })) {
   await page.waitForTimeout(20000);
   const ossia = await sample(20);
   const worker = await page.evaluate(() => performance.getEntriesByType('resource').some((r) => /loudness\.worker/.test(r.name)));
-  out[name] = { firstContentfulPaintMs: paint.firstContentfulPaint && Math.round(paint.firstContentfulPaint), engravedPageMs: paint.engravedPage && Math.round(paint.engravedPage), replay30s: frames, ossiaReplay20s: { ...ossia, loudnessWorker: worker } };
+  out[name] = {
+    firstContentfulPaintMs: paint.firstContentfulPaint && Math.round(paint.firstContentfulPaint),
+    engravedPageMs: paint.engravedPage && Math.round(paint.engravedPage),
+    replay30s: frames,
+    ossiaReplay20s: { ...ossia, loudnessWorker: worker },
+  };
   await browser.close();
 }
 await new Promise((resolve) => server.httpServer.close(resolve));

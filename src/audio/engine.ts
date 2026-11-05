@@ -3,7 +3,7 @@ import type { NoteEvent } from '../music/conductor';
 import type { Arrangement } from '../music/mapping';
 import { createRng } from '../music/rng';
 import { generateImpulse, softClipCurve } from './impulse';
-import { Drone, Pad, Singer, bell, distantChord, droplet, glide, grit, noiseBuffer, pluck, pulse, water } from './voices';
+import { bell, Drone, distantChord, droplet, glide, grit, noiseBuffer, Pad, pluck, pulse, Singer, water } from './voices';
 
 /**
  * Balance: what each voice is multiplied by at full share. Set by rendering
@@ -11,7 +11,7 @@ import { Drone, Pad, Singer, bell, distantChord, droplet, glide, grit, noiseBuff
  * scripts/measure-audio.mjs), then nudged by ear so the drone and pulse sit
  * underneath rather than on top.
  */
-export const TRIM: Record<Fuel, number> = {
+const TRIM: Record<Fuel, number> = {
   solar: 0.5,
   wind: 0.46,
   hydro: 0.89,
@@ -84,7 +84,15 @@ export class AudioEngine {
     this.tone = new BiquadFilterNode(ctx, { type: 'lowpass', frequency: 12000, Q: 0.5 });
     const highpass = new BiquadFilterNode(ctx, { type: 'highpass', frequency: 32, Q: 0.6 });
     const sum = new GainNode(ctx, { gain: 0.88 });
-    sum.connect(highpass).connect(this.tone).connect(glue).connect(limiter).connect(clip).connect(this.trim).connect(this.master).connect(ctx.destination);
+    sum
+      .connect(highpass)
+      .connect(this.tone)
+      .connect(glue)
+      .connect(limiter)
+      .connect(clip)
+      .connect(this.trim)
+      .connect(this.master)
+      .connect(ctx.destination);
 
     const [left, right] = generateImpulse({ sampleRate: ctx.sampleRate, seconds: 4.2, preDelay: 0.025, seed: 5 });
     const ir = ctx.createBuffer(2, left.length, ctx.sampleRate);

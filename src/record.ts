@@ -2,19 +2,18 @@ import { integratedLoudness, samplePeakDb } from './audio/loudness';
 import { RECORD_CEILING_DB, RECORD_TARGET_LUFS, recordGain } from './audio/match';
 import { renderOffline } from './audio/render';
 import { encodeWav, type RecordTags } from './audio/wav';
-import { FIRST_DAY, describeError, fetchDay, type Day } from './data/api';
+import { type Day, describeError, FIRST_DAY, fetchDay } from './data/api';
 import type { Region } from './data/regions';
 import type { GridPeriod } from './data/series';
 import { HOUR, londonDay, londonDayStart, londonParts } from './data/time';
 import { BAR_SECONDS } from './music/conductor';
-import { composeDay, seedFor, type DayScore } from './music/day';
+import { composeDay, type DayScore, seedFor } from './music/day';
 import { ossiaOf } from './music/ossia';
-import { STAVES } from './notation/engrave';
+import { CURSOR, canvasFontsReady } from './notation/paint';
+import { RENEWABLE_STAVES, STAVES } from './notation/staves';
 import type { Player } from './player';
 import type { Elements } from './ui/elements';
-import { MODE_NAMES, clock, longDay } from './ui/format';
-import { canvasFontsReady } from './notation/paint';
-import { CURSOR } from './visual/score';
+import { clock, longDay, MODE_NAMES } from './ui/format';
 import { drawSleeve, type SleeveBar, type SleeveText } from './visual/sleeve';
 
 /** Records are pressed at CD rate: smaller files, played everywhere. */
@@ -63,8 +62,6 @@ function pressToLevel(buffer: AudioBuffer): NonNullable<Pressed['loudness']> {
   return { lufs: lufs + gainDb, peakDb: peakDb + gainDb, gainDb, limited: gainDb < RECORD_TARGET_LUFS - lufs - 0.05 };
 }
 
-/** An ossia record's sleeve engraves only the parts that play in it. */
-const OSSIA_SLEEVE_STAVES = STAVES.filter((s) => s.fuel === 'wind' || s.fuel === 'solar' || s.fuel === 'hydro');
 const TACET = 'Gas, coal, nuclear, biomass, imports and other: tacet. The ossia plays wind, sun and water alone.';
 
 const iso = (t: number): string => {
@@ -138,7 +135,9 @@ export class RecordPress {
       this.current = null;
       const valid = this.el.recordDate.checkValidity() && date !== '';
       this.pending = valid ? date : null;
-      this.el.sleeveCaption.textContent = valid ? `Press the record to fetch NESO’s figures for this day and engrave its sleeve.` : 'Choose a day, then press it.';
+      this.el.sleeveCaption.textContent = valid
+        ? `Press the record to fetch NESO’s figures for this day and engrave its sleeve.`
+        : 'Choose a day, then press it.';
       this.paint();
       return;
     }
@@ -224,14 +223,24 @@ export class RecordPress {
     const ctx = image.getContext('2d');
     if (!ctx) return;
     const c = this.current;
-    const waiting = this.pending ? londonDay(Date.UTC(Number(this.pending.slice(0, 4)), Number(this.pending.slice(5, 7)) - 1, Number(this.pending.slice(8, 10)), 12)) : null;
+    const waiting = this.pending
+      ? londonDay(Date.UTC(Number(this.pending.slice(0, 4)), Number(this.pending.slice(5, 7)) - 1, Number(this.pending.slice(8, 10)), 12))
+      : null;
     const ossia = this.deps.ossia();
     this.layout = c
-      ? drawSleeve(ctx, px, c.score.bars, c.text, c.ossia ? OSSIA_SLEEVE_STAVES : STAVES)
+      ? drawSleeve(ctx, px, c.score.bars, c.text, c.ossia ? RENEWABLE_STAVES : STAVES)
       : drawSleeve(ctx, px, [], {
           title: waiting ? longDay(waiting.start) : 'Choose a day',
-          dedication: waiting ? (ossia ? `ossia: the grid of ${this.deps.region().name} as if fully renewable, a hypothetical` : `for the electricity grid of ${this.deps.region().name}`) : 'and press it to hear the grid play it',
-          footer: [waiting ? 'Not yet pressed: the score is engraved once NESO’s figures for the day arrive.' : `Any day from ${longDay(Date.UTC(2018, 4, 12, 12))} to yesterday.`],
+          dedication: waiting
+            ? ossia
+              ? `ossia: the grid of ${this.deps.region().name} as if fully renewable, a hypothetical`
+              : `for the electricity grid of ${this.deps.region().name}`
+            : 'and press it to hear the grid play it',
+          footer: [
+            waiting
+              ? 'Not yet pressed: the score is engraved once NESO’s figures for the day arrive.'
+              : `Any day from ${longDay(Date.UTC(2018, 4, 12, 12))} to yesterday.`,
+          ],
           cue: () => '',
         });
     this.image = image;
@@ -289,7 +298,9 @@ export class RecordPress {
       // count of seconds, so the page never looks stuck.
       let reported = false;
       const pressStart = performance.now();
-      const label = pressed.ossia ? `Pressing the ossia of ${longDay(day.span.start)} (hypothetical)` : `Pressing ${longDay(day.span.start)}`;
+      const label = pressed.ossia
+        ? `Pressing the ossia of ${longDay(day.span.start)} (hypothetical)`
+        : `Pressing ${longDay(day.span.start)}`;
       this.status(`${label}…`);
       const ticker = window.setInterval(() => {
         if (!reported) this.status(`${label}… ${Math.round((performance.now() - pressStart) / 1000)} s`);
@@ -312,10 +323,14 @@ export class RecordPress {
       pressed.buffer = rendered.buffer;
       pressed.loudness = pressToLevel(rendered.buffer);
       await this.publish(pressed, (performance.now() - started) / 1000);
-      this.deps.announce(`Pressed ${pressed.ossia ? 'the fully renewable ossia of ' : ''}${longDay(day.span.start)}. Play it here or download it.`);
+      this.deps.announce(
+        `Pressed ${pressed.ossia ? 'the fully renewable ossia of ' : ''}${longDay(day.span.start)}. Play it here or download it.`,
+      );
     } catch (err) {
       this.status(`Couldn’t press that day: ${describeError(err)}. Nothing was downloaded; try again.`, true);
-      this.el.sleeveCaption.textContent = this.current ? `Still showing ${this.current.text.title}; ${date} couldn’t be fetched.` : 'No sleeve yet: that day couldn’t be fetched.';
+      this.el.sleeveCaption.textContent = this.current
+        ? `Still showing ${this.current.text.title}; ${date} couldn’t be fetched.`
+        : 'No sleeve yet: that day couldn’t be fetched.';
     } finally {
       this.busy = false;
       el.recordPress.disabled = false;
@@ -400,7 +415,7 @@ export class RecordPress {
     canvas.height = size;
     const ctx = canvas.getContext('2d');
     if (!ctx) return Promise.resolve(null);
-    drawSleeve(ctx, size, p.score.bars, p.text, p.ossia ? OSSIA_SLEEVE_STAVES : STAVES);
+    drawSleeve(ctx, size, p.score.bars, p.text, p.ossia ? RENEWABLE_STAVES : STAVES);
     return new Promise((resolve) => {
       canvas.toBlob(resolve, type, 0.88);
     });

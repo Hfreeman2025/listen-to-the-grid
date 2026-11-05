@@ -1,12 +1,6 @@
 import { describe, expect, it } from 'vitest';
-import {
-  currentGenerationResponse,
-  generationRangeResponse,
-  intensityResponse,
-  sampleDay,
-  toMix,
-} from '../src/data/schema';
 import sample from '../src/data/sample-day.json';
+import { currentGenerationResponse, generationRangeResponse, intensityResponse, sampleDay, toMix } from '../src/data/schema';
 
 // Shapes copied from real responses on 1 November 2026.
 const generation = {
@@ -74,7 +68,9 @@ describe('intensity schema', () => {
   });
 
   it('rejects a period with neither actual nor forecast', () => {
-    const empty = { data: [{ from: '2026-11-01T10:00Z', to: '2026-11-01T10:30Z', intensity: { forecast: null, actual: null, index: 'low' } }] };
+    const empty = {
+      data: [{ from: '2026-11-01T10:00Z', to: '2026-11-01T10:30Z', intensity: { forecast: null, actual: null, index: 'low' } }],
+    };
     expect(intensityResponse.safeParse(empty).success).toBe(false);
   });
 

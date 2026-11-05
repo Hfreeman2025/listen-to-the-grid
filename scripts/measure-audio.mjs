@@ -2,15 +2,16 @@
 // per-voice balance, levels and clipping across the sample day, a click test
 // with an unramped control, brightness for clean versus dirty grids, and the
 // same day as the fully renewable ossia.
-// Also writes the sample day, played in 60 seconds, to renders/sample-day.wav.
+// Also writes the sample day, played in 60 seconds, to renders/ (git-ignored),
+// real and ossia, with its spectrogram.
 //
 //   npm run measure
 //
 // Makes no network requests: the sample day is bundled.
 import { mkdir, writeFile } from 'node:fs/promises';
 import { chromium } from 'playwright';
-import { launchSilent, silentContext } from './silent.mjs';
 import { createServer } from 'vite';
+import { launchSilent, silentContext } from './silent.mjs';
 
 const server = await createServer({ server: { port: 5199, strictPort: true }, logLevel: 'warn' });
 await server.listen();
@@ -39,6 +40,6 @@ const dir = new URL('../renders/', import.meta.url);
 await mkdir(dir, { recursive: true });
 await writeFile(new URL('sample-day.wav', dir), Buffer.from(wav.day, 'base64'));
 await writeFile(new URL('sample-day-ossia.wav', dir), Buffer.from(wav.ossia, 'base64'));
-await writeFile(new URL('../shots/v2/spectrogram-sample-day.png', import.meta.url), Buffer.from(spectrogram.split(',')[1], 'base64'));
+await writeFile(new URL('spectrogram-sample-day.png', dir), Buffer.from(spectrogram.split(',')[1], 'base64'));
 console.log(JSON.stringify(numbers, null, 2));
-console.log('wrote renders/sample-day.wav, renders/sample-day-ossia.wav and shots/v2/spectrogram-sample-day.png');
+console.log('wrote renders/sample-day.wav, renders/sample-day-ossia.wav and renders/spectrogram-sample-day.png');

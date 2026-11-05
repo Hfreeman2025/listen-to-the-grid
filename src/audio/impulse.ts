@@ -15,7 +15,12 @@ export interface ImpulseOptions {
  * absorb high frequencies first. Left and right use independent noise so the
  * reverb feels wide. Peak-normalised to 1.
  */
-export function generateImpulse({ sampleRate, seconds, preDelay, seed }: ImpulseOptions): [Float32Array<ArrayBuffer>, Float32Array<ArrayBuffer>] {
+export function generateImpulse({
+  sampleRate,
+  seconds,
+  preDelay,
+  seed,
+}: ImpulseOptions): [Float32Array<ArrayBuffer>, Float32Array<ArrayBuffer>] {
   const length = Math.max(1, Math.round(sampleRate * seconds));
   const pre = Math.round(sampleRate * preDelay);
   const channels: [Float32Array<ArrayBuffer>, Float32Array<ArrayBuffer>] = [new Float32Array(length), new Float32Array(length)];

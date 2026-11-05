@@ -1,4 +1,4 @@
-import { chordPitchClasses, type ChordShape, type Mode } from './theory';
+import { type ChordShape, chordPitchClasses, type Mode } from './theory';
 
 /**
  * Carbon intensity picks the mode. The ladder runs from Lydian, the brightest
@@ -15,7 +15,7 @@ export const MODE_LADDER: readonly { mode: Mode; from: number; marking: string; 
 ];
 
 /** How far past a threshold the intensity must move before the mode changes. */
-export const HYSTERESIS = 5;
+const HYSTERESIS = 5;
 
 export function modeInfo(mode: Mode): (typeof MODE_LADDER)[number] {
   const info = MODE_LADDER.find((m) => m.mode === mode);
@@ -54,7 +54,7 @@ export function brightness(grams: number): number {
  * Lydian's major II, Mixolydian's flat VII, Dorian's major IV, Aeolian's flat
  * VI and Phrygian's flat II.
  */
-export const PROGRESSIONS: Record<Mode, readonly number[]> = {
+const PROGRESSIONS: Record<Mode, readonly number[]> = {
   lydian: [0, 1, 0, 1, 6, 1, 4, 0],
   ionian: [0, 3, 1, 4, 0, 5, 4, 0],
   mixolydian: [0, 6, 3, 4, 0, 6, 3, 0],

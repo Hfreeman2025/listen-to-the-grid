@@ -1,9 +1,10 @@
 import type { Bar } from '../music/conductor';
-import { STAVES, engraveBar, engraveFrame, staffPositions, type StaffDef, type Tail } from '../notation/engrave';
-import { MUSIC_FONT, SANS_FONT, SIGN_FONT, paintMarks } from '../notation/paint';
-import { INK } from './score';
+import { engraveBar, type Tail } from '../notation/engrave';
+import { engraveFrame } from '../notation/frame';
+import { INK, MUSIC_FONT, paintMarks, SANS_FONT, SIGN_FONT } from '../notation/paint';
+import { STAVES, type StaffDef, staffPositions } from '../notation/staves';
 
-export const SLEEVE_PAPER = '#fbf8f2';
+const SLEEVE_PAPER = '#fbf8f2';
 /** The hours over the sleeve's bars, printed larger than the live score's. */
 const CUE = 2.1;
 
@@ -40,7 +41,13 @@ export function sleeveRows(count: number): number[] {
  * systems of eight bars, each bar labelled with its hour; the data at the
  * foot. Returns where each bar sits, so a cursor can follow the record.
  */
-export function drawSleeve(ctx: CanvasRenderingContext2D, size: number, bars: readonly Bar[], text: SleeveText, staves: readonly StaffDef[] = STAVES): SleeveBar[] {
+export function drawSleeve(
+  ctx: CanvasRenderingContext2D,
+  size: number,
+  bars: readonly Bar[],
+  text: SleeveText,
+  staves: readonly StaffDef[] = STAVES,
+): SleeveBar[] {
   ctx.save();
   ctx.fillStyle = SLEEVE_PAPER;
   ctx.fillRect(0, 0, size, size);
@@ -94,7 +101,10 @@ export function drawSleeve(ctx: CanvasRenderingContext2D, size: number, bars: re
     // Shorter last rows keep the same bar width, as an engraver would.
     const probe = engraveFrame({ sp, top, width, bars: perBar, mode: first.mode, short: r > 0, time: r === 0, staves, cueSize: CUE });
     const frameWidth = probe.frame.firstBarX + count * probe.frame.barWidth + 0.5 * sp;
-    const { frame, marks } = count === perBar ? probe : engraveFrame({ sp, top, width: frameWidth, bars: count, mode: first.mode, short: r > 0, time: r === 0, staves, cueSize: CUE });
+    const { frame, marks } =
+      count === perBar
+        ? probe
+        : engraveFrame({ sp, top, width: frameWidth, bars: count, mode: first.mode, short: r > 0, time: r === 0, staves, cueSize: CUE });
     ctx.save();
     ctx.translate(m, 0);
     paintMarks(ctx, marks, sp, INK);

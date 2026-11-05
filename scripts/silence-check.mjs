@@ -9,7 +9,11 @@ import { chromium, firefox, webkit } from 'playwright';
 import { preview } from 'vite';
 import { launchSilent, silentContext } from './silent.mjs';
 
-const server = await preview({ build: { outDir: process.env.DIST ?? 'dist' }, preview: { host: '127.0.0.1', port: 4189, strictPort: true }, logLevel: 'warn' });
+const server = await preview({
+  build: { outDir: process.env.DIST ?? 'dist' },
+  preview: { host: '127.0.0.1', port: 4189, strictPort: true },
+  logLevel: 'warn',
+});
 
 /** PIDs of the Playwright-managed browser processes running now. */
 function browserPids() {
@@ -56,7 +60,9 @@ for (const [name, engine] of Object.entries({ chromium, webkit, firefox })) {
   const device = await page.evaluate(() => new AudioContext().constructor.name);
   const playing = (await page.locator('#play').innerText()).trim();
   const running = await page.evaluate(() => document.querySelector('#score')?.dataset.bar);
-  console.log(`${name}: ${seen.size === 0 ? 'no audio assertions' : 'AUDIO ASSERTION'} (live context: ${device}; button says ${playing}, bar ${running})`);
+  console.log(
+    `${name}: ${seen.size === 0 ? 'no audio assertions' : 'AUDIO ASSERTION'} (live context: ${device}; button says ${playing}, bar ${running})`,
+  );
   for (const s of seen) console.log(`  ${s}`);
   if (seen.size > 0) failed = true;
   await browser.close();

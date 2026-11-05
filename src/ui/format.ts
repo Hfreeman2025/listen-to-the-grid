@@ -1,6 +1,6 @@
 import { FUELS, type Fuel, type Mix } from '../data/schema';
-import { MINUTE, londonParts } from '../data/time';
 import type { GridPeriod } from '../data/series';
+import { londonParts, MINUTE } from '../data/time';
 import { modeInfo } from '../music/harmony';
 import type { Mode } from '../music/theory';
 
@@ -12,19 +12,6 @@ export const FUEL_NAMES: Record<Fuel, string> = {
   imports: 'Imports',
   nuclear: 'Nuclear',
   other: 'Other',
-  coal: 'Coal',
-  gas: 'Gas',
-};
-
-/** Score-style abbreviations for narrow screens, as engravers shorten "Flute" to "Fl." */
-export const FUEL_SHORT: Record<Fuel, string> = {
-  solar: 'Sol.',
-  wind: 'Wind',
-  hydro: 'Hyd.',
-  biomass: 'Bio.',
-  imports: 'Imp.',
-  nuclear: 'Nuc.',
-  other: 'Oth.',
   coal: 'Coal',
   gas: 'Gas',
 };
@@ -130,6 +117,10 @@ export function headline(mix: Mix, mode: Mode, place?: string): string {
 /** "165 g of CO₂ per kWh, measured; NESO rates that moderate." */
 export function describeIntensity(p: Pick<GridPeriod, 'intensity' | 'measured' | 'index'>, regional = false): string {
   const grams = p.intensity;
-  const how = p.measured ? 'measured' : regional ? 'modelled (NESO estimates its regional figures)' : 'forecast (the measured figure is not out yet)';
+  const how = p.measured
+    ? 'measured'
+    : regional
+      ? 'modelled (NESO estimates its regional figures)'
+      : 'forecast (the measured figure is not out yet)';
   return `${Math.round(grams)} g of CO₂ per kWh, ${how}; NESO rates that ${p.index}.`;
 }

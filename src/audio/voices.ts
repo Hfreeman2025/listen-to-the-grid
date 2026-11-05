@@ -3,8 +3,9 @@
  * whole piece and are only steered; note voices build a few nodes per note and
  * let them go when it ends. Every parameter change is a ramp, never a jump.
  */
-import { midiToHz } from '../music/theory';
+
 import { createRng } from '../music/rng';
+import { midiToHz } from '../music/theory';
 import { crushCurve } from './impulse';
 
 /**
@@ -37,7 +38,7 @@ export function noiseBuffer(ctx: BaseAudioContext, seconds: number, seed: number
 }
 
 /** A looped buffer of slowly wandering values in [-1, 1], used as a random LFO. */
-export function wanderBuffer(ctx: BaseAudioContext, seconds: number, changesPerSecond: number, seed: number): AudioBuffer {
+function wanderBuffer(ctx: BaseAudioContext, seconds: number, changesPerSecond: number, seed: number): AudioBuffer {
   const buffer = ctx.createBuffer(1, Math.round(ctx.sampleRate * seconds), ctx.sampleRate);
   const data = buffer.getChannelData(0);
   const rng = createRng(seed);
@@ -202,7 +203,15 @@ export function water(ctx: BaseAudioContext, out: AudioNode, noise: AudioBuffer,
 }
 
 /** Solar: an FM bell. A bright, inharmonic strike that settles into a pure tone. */
-export function bell(ctx: BaseAudioContext, out: AudioNode, midi: number, velocity: number, duration: number, at: number, pan: number): void {
+export function bell(
+  ctx: BaseAudioContext,
+  out: AudioNode,
+  midi: number,
+  velocity: number,
+  duration: number,
+  at: number,
+  pan: number,
+): void {
   const f = midiToHz(midi);
   const carrier = new OscillatorNode(ctx, { type: 'sine', frequency: f });
   const mod = new OscillatorNode(ctx, { type: 'sine', frequency: f * 3.5 });
@@ -299,7 +308,14 @@ export class Singer {
 }
 
 /** Imports: a soft, distant chord that swells in and fades away. */
-export function distantChord(ctx: BaseAudioContext, out: AudioNode, midis: readonly number[], velocity: number, duration: number, at: number): void {
+export function distantChord(
+  ctx: BaseAudioContext,
+  out: AudioNode,
+  midis: readonly number[],
+  velocity: number,
+  duration: number,
+  at: number,
+): void {
   const lp = new BiquadFilterNode(ctx, { type: 'lowpass', frequency: 1500, Q: 0.3 });
   const amp = new GainNode(ctx, { gain: 0 });
   const attack = Math.min(1.4, duration * 0.3);
@@ -337,7 +353,15 @@ export function droplet(ctx: BaseAudioContext, out: AudioNode, midi: number, vel
 }
 
 /** Other: a plucked note, a click of noise ringing through a tuned filter. */
-export function pluck(ctx: BaseAudioContext, out: AudioNode, noise: AudioBuffer, midi: number, velocity: number, at: number, pan: number): void {
+export function pluck(
+  ctx: BaseAudioContext,
+  out: AudioNode,
+  noise: AudioBuffer,
+  midi: number,
+  velocity: number,
+  at: number,
+  pan: number,
+): void {
   const f = midiToHz(midi);
   const src = new AudioBufferSourceNode(ctx, { buffer: noise });
   const bp = new BiquadFilterNode(ctx, { type: 'bandpass', frequency: f, Q: 28 });
@@ -360,7 +384,15 @@ export function pluck(ctx: BaseAudioContext, out: AudioNode, noise: AudioBuffer,
 }
 
 /** Coal: harsh grit, a crushed saw and a burst of noise. */
-export function grit(ctx: BaseAudioContext, out: AudioNode, noise: AudioBuffer, midi: number, velocity: number, duration: number, at: number): void {
+export function grit(
+  ctx: BaseAudioContext,
+  out: AudioNode,
+  noise: AudioBuffer,
+  midi: number,
+  velocity: number,
+  duration: number,
+  at: number,
+): void {
   const saw = new OscillatorNode(ctx, { type: 'sawtooth', frequency: midiToHz(midi) });
   const crush = new WaveShaperNode(ctx, { curve: crushCurve(3) });
   const src = new AudioBufferSourceNode(ctx, { buffer: noise });

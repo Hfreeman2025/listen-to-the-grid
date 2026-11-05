@@ -1,12 +1,12 @@
 import { FUELS, type Fuel, type Mix } from '../data/schema';
-import { PHRASE_BARS, chordForBar, type Chord } from './harmony';
+import { type Chord, chordForBar, PHRASE_BARS } from './harmony';
 import type { Arrangement } from './mapping';
 import { createRng, type Rng } from './rng';
-import { degreeToMidi, midiToDegree, quantise, stackChord, voiceLead, type Mode } from './theory';
+import { degreeToMidi, type Mode, midiToDegree, quantise, stackChord, voiceLead } from './theory';
 
 /** Andante in common time: one bar is exactly 2.5 seconds. */
-export const BPM = 96;
-export const STEPS_PER_BEAT = 4;
+const BPM = 96;
+const STEPS_PER_BEAT = 4;
 export const STEPS_PER_BAR = 16;
 export const STEP_SECONDS = 60 / BPM / STEPS_PER_BEAT;
 export const BAR_SECONDS = STEP_SECONDS * STEPS_PER_BAR;
@@ -60,19 +60,56 @@ export const SWELL = [0.5, 0.68, 0.88, 0.66, 0.56, 0.8, 1, 0.78, 0.5] as const;
 
 /** Rhythm cells for the sung line: [start, length] in sixteenths, gaps are rests. */
 const MOTIFS: readonly (readonly [number, number])[][] = [
-  [[0, 4], [4, 4], [8, 8]], // crotchet crotchet minim
-  [[0, 6], [6, 2], [8, 8]], // dotted crotchet quaver minim
-  [[0, 2], [2, 2], [4, 4], [8, 8]], // quaver quaver crotchet minim
-  [[0, 8], [8, 4], [12, 4]], // minim crotchet crotchet
-  [[0, 4], [4, 2], [6, 2], [8, 4], [12, 4]], // crotchet quaver quaver crotchet crotchet
-  [[0, 4], [4, 4], [8, 4]], // three crotchets, then breathe
+  [
+    [0, 4],
+    [4, 4],
+    [8, 8],
+  ], // crotchet crotchet minim
+  [
+    [0, 6],
+    [6, 2],
+    [8, 8],
+  ], // dotted crotchet quaver minim
+  [
+    [0, 2],
+    [2, 2],
+    [4, 4],
+    [8, 8],
+  ], // quaver quaver crotchet minim
+  [
+    [0, 8],
+    [8, 4],
+    [12, 4],
+  ], // minim crotchet crotchet
+  [
+    [0, 4],
+    [4, 2],
+    [6, 2],
+    [8, 4],
+    [12, 4],
+  ], // crotchet quaver quaver crotchet crotchet
+  [
+    [0, 4],
+    [4, 4],
+    [8, 4],
+  ], // three crotchets, then breathe
 ];
 const HALF_CADENCES: readonly (readonly [number, number])[][] = [
   [[0, 12]], // dotted minim, crotchet rest
-  [[0, 4], [4, 8]], // crotchet, minim, crotchet rest
+  [
+    [0, 4],
+    [4, 8],
+  ], // crotchet, minim, crotchet rest
   [[0, 8]], // minim, minim rest
 ];
-const FINAL_CADENCES: readonly (readonly [number, number])[][] = [[[0, 16]], [[0, 12]], [[0, 4], [4, 12]]];
+const FINAL_CADENCES: readonly (readonly [number, number])[][] = [
+  [[0, 16]],
+  [[0, 12]],
+  [
+    [0, 4],
+    [4, 12],
+  ],
+];
 
 /** Registers, as MIDI note ranges. D4 = 62. */
 const PAD = { low: 48, high: 74 };
@@ -140,7 +177,8 @@ export class Conductor {
     // Nuclear: the steady pulse, a crotchet on every beat, on the chord's root.
     if (arr.nuclear.amp > 0) {
       const root = rootIn(chord, PULSE.low, PULSE.high);
-      for (let beat = 0; beat < 4; beat++) parts.nuclear.push({ start: beat * 4, length: 4, midis: [root], velocity: beat === 0 ? 1 : 0.72 });
+      for (let beat = 0; beat < 4; beat++)
+        parts.nuclear.push({ start: beat * 4, length: 4, midis: [root], velocity: beat === 0 ? 1 : 0.72 });
     }
 
     parts.biomass = this.sing(pos, mode, chord, arr.biomass.density);
@@ -159,21 +197,24 @@ export class Conductor {
     // Hydro: droplets over the running water, never on the downbeat.
     if (arr.hydro.dropDensity > 0) {
       for (let step = 2; step < 16; step += 2) {
-        if (r() < arr.hydro.dropDensity * 0.3) parts.hydro.push({ start: step, length: 2, midis: [quantise(79 + r() * 17, mode)], velocity: 0.4 + r() * 0.4 });
+        if (r() < arr.hydro.dropDensity * 0.3)
+          parts.hydro.push({ start: step, length: 2, midis: [quantise(79 + r() * 17, mode)], velocity: 0.4 + r() * 0.4 });
       }
     }
 
     // Other: the odd plucked crotchet on beat 2 or 4.
     if (arr.other.density > 0) {
       for (const step of [4, 12]) {
-        if (r() < arr.other.density * 0.7) parts.other.push({ start: step, length: 4, midis: [quantise(64 + r() * 17, mode)], velocity: 0.5 + r() * 0.3 });
+        if (r() < arr.other.density * 0.7)
+          parts.other.push({ start: step, length: 4, midis: [quantise(64 + r() * 17, mode)], velocity: 0.5 + r() * 0.3 });
       }
     }
 
     // Coal: crackling grit in semiquavers.
     if (arr.coal.drive > 0) {
       for (let step = 0; step < 16; step++) {
-        if (r() < arr.coal.drive * 0.5) parts.coal.push({ start: step, length: 1, midis: [rootIn(chord, 38, 49)], velocity: 0.5 + r() * 0.5 });
+        if (r() < arr.coal.drive * 0.5)
+          parts.coal.push({ start: step, length: 1, midis: [rootIn(chord, 38, 49)], velocity: 0.5 + r() * 0.5 });
       }
     }
 
@@ -237,7 +278,7 @@ export class Conductor {
       const length = sixteenths ? 1 : 2;
       const up = r() < 0.6;
       const startPc = chord.pitchClasses[Math.floor(r() * chord.pitchClasses.length)] ?? 2;
-      let midi = BELLS.low + (((startPc - BELLS.low) % 12) + 12) % 12 + (r() < 0.5 ? 0 : 12);
+      let midi = BELLS.low + ((((startPc - BELLS.low) % 12) + 12) % 12) + (r() < 0.5 ? 0 : 12);
       let degree = midiToDegree(midi, mode, 5);
       for (let i = 0; i < count; i++) {
         midi = degreeToMidi(degree, mode, 5);
@@ -268,7 +309,7 @@ function clamp(midi: number, mode: Mode): number {
 
 function rootIn(chord: Chord, low: number, high: number): number {
   const root = chord.pitchClasses[0] ?? 2;
-  let midi = low + (((root - low) % 12) + 12) % 12;
+  let midi = low + ((((root - low) % 12) + 12) % 12);
   if (midi > high) midi -= 12;
   return midi;
 }
@@ -299,7 +340,16 @@ export function barEvents(bar: Bar): NoteEvent[] {
         step: bar.index * STEPS_PER_BAR + n.start,
         midis: n.midis,
         velocity: n.velocity,
-        duration: voice === 'solar' ? 2.4 : voice === 'nuclear' ? 0.42 : voice === 'hydro' ? 0.14 : voice === 'other' ? 0.5 : n.length * STEP_SECONDS * (voice === 'imports' ? 0.95 : 1),
+        duration:
+          voice === 'solar'
+            ? 2.4
+            : voice === 'nuclear'
+              ? 0.42
+              : voice === 'hydro'
+                ? 0.14
+                : voice === 'other'
+                  ? 0.5
+                  : n.length * STEP_SECONDS * (voice === 'imports' ? 0.95 : 1),
       });
     }
   }

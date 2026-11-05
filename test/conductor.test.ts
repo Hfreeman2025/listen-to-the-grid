@@ -1,10 +1,21 @@
 import { describe, expect, it } from 'vitest';
-import { BAR_SECONDS, Conductor, STEP_SECONDS, barEvents, type Bar } from '../src/music/conductor';
+import { FUELS, type Mix } from '../src/data/schema';
+import { BAR_SECONDS, type Bar, barEvents, Conductor, STEP_SECONDS } from '../src/music/conductor';
 import { arrange } from '../src/music/mapping';
 import { inScale } from '../src/music/theory';
-import { FUELS, type Mix } from '../src/data/schema';
 
-const mix = (over: Partial<Mix>): Mix => ({ solar: 0, wind: 0, hydro: 0, biomass: 0, imports: 0, nuclear: 0, other: 0, coal: 0, gas: 0, ...over });
+const mix = (over: Partial<Mix>): Mix => ({
+  solar: 0,
+  wind: 0,
+  hydro: 0,
+  biomass: 0,
+  imports: 0,
+  nuclear: 0,
+  other: 0,
+  coal: 0,
+  gas: 0,
+  ...over,
+});
 const busy = mix({ solar: 0.15, wind: 0.3, hydro: 0.05, biomass: 0.12, imports: 0.1, nuclear: 0.15, other: 0.05, coal: 0.02, gas: 0.06 });
 
 function play(seed: number, bars: number, grams: (bar: number) => number, m: Mix = busy): Bar[] {
@@ -25,7 +36,9 @@ describe('Conductor', () => {
   const sweep = play(7, 64, (b) => 30 + (b / 64) * 260);
 
   it('keeps every note in the key of its bar, across all six modes', () => {
-    for (const bar of sweep) for (const f of FUELS) for (const n of bar.parts[f]) for (const m of n.midis) expect(inScale(m, bar.mode), `${f} ${m} in ${bar.mode}`).toBe(true);
+    for (const bar of sweep)
+      for (const f of FUELS)
+        for (const n of bar.parts[f]) for (const m of n.midis) expect(inScale(m, bar.mode), `${f} ${m} in ${bar.mode}`).toBe(true);
     expect(new Set(sweep.map((b) => b.mode))).toEqual(new Set(['lydian', 'ionian', 'mixolydian', 'dorian', 'aeolian', 'phrygian']));
   });
 
@@ -41,7 +54,8 @@ describe('Conductor', () => {
       // The sung line and the bells never overlap themselves.
       for (const f of ['biomass', 'solar'] as const) {
         const notes = [...bar.parts[f]].sort((a, b) => a.start - b.start);
-        for (let i = 1; i < notes.length; i++) expect(notes[i]?.start ?? 0).toBeGreaterThanOrEqual((notes[i - 1]?.start ?? 0) + (notes[i - 1]?.length ?? 0));
+        for (let i = 1; i < notes.length; i++)
+          expect(notes[i]?.start ?? 0).toBeGreaterThanOrEqual((notes[i - 1]?.start ?? 0) + (notes[i - 1]?.length ?? 0));
       }
     }
   });

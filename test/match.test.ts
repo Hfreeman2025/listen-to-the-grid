@@ -1,5 +1,5 @@
 import { describe, expect, it, vi } from 'vitest';
-import { LoudnessMatcher, ossiaTrim, recordGain, type Match } from '../src/audio/match';
+import { LoudnessMatcher, type Match, ossiaTrim, recordGain } from '../src/audio/match';
 
 describe('ossiaTrim', () => {
   it('turns the ossia down by exactly the gap, to a tenth of a dB', () => {
@@ -38,7 +38,11 @@ describe('LoudnessMatcher', () => {
     const results: string[] = [];
     const resolvers: ((m: Match) => void)[] = [];
     const measure = vi.fn(() => new Promise<Match>((resolve) => resolvers.push(resolve)));
-    const m = new LoudnessMatcher((key) => results.push(key), () => undefined, measure);
+    const m = new LoudnessMatcher(
+      (key) => results.push(key),
+      () => undefined,
+      measure,
+    );
     m.request('a', g);
     m.request('b', g);
     m.request('c', g); // b is superseded before it starts

@@ -1,0 +1,207 @@
+/* Transport */
+
+.transport {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 0.6rem 1.3rem;
+  padding: 10px 0 14px;
+  border-top: 1px solid var(--ink);
+  border-bottom: 1px solid var(--ink);
+}
+button {
+  font: inherit;
+  color: inherit;
+}
+.ink-button {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.55rem;
+  font-family: var(--sans);
+  font-weight: 500;
+  font-size: 0.95rem;
+  padding: 0.5rem 1.05rem;
+  min-height: 44px;
+  background: var(--ink);
+  color: var(--paper);
+  border: 1.5px solid var(--ink);
+  border-radius: 0;
+  cursor: pointer;
+}
+.ink-button svg {
+  fill: currentColor;
+}
+.ink-button:hover:not(:disabled) {
+  background: #3a332c;
+}
+.ink-button:disabled {
+  opacity: 0.45;
+  cursor: default;
+}
+.play {
+  min-width: 7.2rem;
+  justify-content: center;
+}
+.play.playing svg {
+  display: none;
+}
+.text-button {
+  font-family: var(--sans);
+  font-weight: 500;
+  font-size: 0.95rem;
+  min-height: 44px;
+  padding: 0.4rem 0.1rem;
+  background: none;
+  border: 0;
+  border-bottom: 1.5px solid var(--ink);
+  border-radius: 0;
+  cursor: pointer;
+  display: inline-flex;
+  align-items: center;
+  text-decoration: none;
+}
+.text-button:disabled {
+  opacity: 0.45;
+  cursor: default;
+}
+.text-button[aria-pressed="true"] {
+  border-bottom: 3px solid var(--red);
+}
+.text-button:hover:not(:disabled) {
+  border-bottom-color: var(--red);
+}
+.press-link {
+  margin-left: auto;
+}
+
+/* The ossia switch: a small square, hollow off, inked on. Never red: the
+   ossia is a what-if, and red means live. */
+.ossia-toggle {
+  gap: 0.5rem;
+}
+.ossia-toggle::before {
+  content: "";
+  width: 0.72rem;
+  height: 0.72rem;
+  border: 1.5px solid var(--ink);
+  flex: none;
+}
+.text-button.ossia-toggle[aria-pressed="true"] {
+  border-bottom: 3px solid var(--ink);
+}
+.ossia-toggle[aria-pressed="true"]::before {
+  background: var(--ink);
+}
+.ossia-key {
+  font-size: 0.95rem;
+  color: var(--ink-soft);
+}
+
+/* The ossia's rule and numbers, under the controls while it is on. */
+.ossia-notes {
+  display: grid;
+  grid-template-columns: minmax(0, 34rem) minmax(0, 30rem);
+  gap: 0.6rem 3rem;
+  align-items: start;
+  padding: 1rem 0 1.2rem;
+  border-bottom: 1px solid var(--ink);
+}
+.ossia-notes p {
+  margin: 0;
+  max-width: 34rem;
+  font-size: 0.95rem;
+}
+.ossia-rule strong {
+  font-family: var(--sign);
+  font-weight: 600;
+  font-size: 1.05rem;
+}
+.ossia-fallback,
+.ossia-loudness {
+  grid-column: 1;
+  color: var(--ink-soft);
+}
+.ossia-table {
+  grid-column: 2;
+  grid-row: 1 / span 3;
+  border-collapse: collapse;
+  font-size: 0.9rem;
+  font-variant-numeric: tabular-nums;
+}
+.ossia-table th,
+.ossia-table td {
+  padding: 0.18rem 0.9rem 0.18rem 0;
+  text-align: left;
+  font-weight: 400;
+}
+.ossia-table thead th {
+  font-family: var(--sans);
+  font-style: italic;
+  color: var(--ink-soft);
+  border-bottom: 1px solid var(--rule);
+}
+.ossia-table td {
+  text-align: right;
+  font-family: var(--mono);
+}
+.ossia-table tbody th {
+  color: var(--ink-soft);
+}
+.ossia-table .silenced td:last-child {
+  color: var(--ink-soft);
+}
+.ossia-table .total th,
+.ossia-table .total td {
+  border-top: 1px solid var(--rule);
+  color: var(--ink);
+}
+
+.volume {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.6rem;
+  font-size: 0.95rem;
+}
+input[type="range"] {
+  -webkit-appearance: none;
+  appearance: none;
+  background: transparent;
+  height: 44px;
+  margin: 0;
+  cursor: pointer;
+}
+.volume input {
+  width: clamp(96px, 11vw, 160px);
+}
+input[type="range"]::-webkit-slider-runnable-track {
+  height: 2px;
+  background: var(--ink);
+}
+input[type="range"]::-moz-range-track {
+  height: 2px;
+  background: var(--ink);
+}
+input[type="range"]::-webkit-slider-thumb {
+  -webkit-appearance: none;
+  width: 14px;
+  height: 14px;
+  margin-top: -6px;
+  background: var(--paper);
+  border: 2px solid var(--ink);
+  border-radius: 0;
+}
+input[type="range"]::-moz-range-thumb {
+  width: 10px;
+  height: 10px;
+  background: var(--paper);
+  border: 2px solid var(--ink);
+  border-radius: 0;
+}
+
+h2 {
+  font-family: var(--sign);
+  font-weight: 600;
+  font-size: clamp(1.6rem, 2.6vw, 2.15rem);
+  line-height: 1.1;
+  margin: 0;
+}

@@ -1,9 +1,8 @@
 import type { GridPeriod } from '../data/series';
 import { HOUR, londonDayStart } from '../data/time';
 import { MODE_LADDER } from '../music/harmony';
-import { MODE_NAMES, clock, dayOfMonth, weekday } from '../ui/format';
-import { MONO_FONT, SANS_FONT } from '../notation/paint';
-import { CURSOR, INK } from './score';
+import { CURSOR, INK, MONO_FONT, SANS_FONT } from '../notation/paint';
+import { clock, dayOfMonth, longDay, MODE_NAMES, periodLabel, weekday } from '../ui/format';
 
 /** Highest intensity the strip is scaled to, in g/kWh. */
 const TOP_G = 300;
@@ -27,6 +26,8 @@ export class Ribbon {
   private w = 0;
   private h = 0;
   private dpr = 1;
+  /** what is on the canvas, so a frame that changes nothing visible draws nothing */
+  private drawn = '';
 
   constructor(private readonly canvas: HTMLCanvasElement) {
     const ctx = canvas.getContext('2d');
@@ -42,6 +43,28 @@ export class Ribbon {
     this.canvas.height = Math.round(rect.height * this.dpr);
     this.w = rect.width;
     this.h = rect.height;
+    this.drawn = '';
+  }
+
+  /** Draw again on the next follow(): the fonts or the week's controls have changed. */
+  invalidate(): void {
+    this.drawn = '';
+  }
+
+  /**
+   * Draw the week with its cursor, only when something visible has changed,
+   * and keep the scrub slider on the same half-hour unless it is being dragged.
+   */
+  follow(state: RibbonState, scrub: HTMLInputElement): void {
+    const { series, cursor, span } = state;
+    const key = `${series.length}|${series[series.length - 1]?.start ?? 0}|${Math.round(cursor / 60_000)}|${span?.start ?? ''}|${state.live}`;
+    if (key === this.drawn) return;
+    this.drawn = key;
+    this.draw(state);
+    const idx = series.findIndex((p) => p.start <= cursor && cursor < p.end);
+    if (idx >= 0 && document.activeElement !== scrub) scrub.value = String(idx);
+    const p = series[idx];
+    if (p) scrub.setAttribute('aria-valuetext', `${longDay(p.start)}, ${periodLabel(p)}`);
   }
 
   draw({ series, cursor, span, live }: RibbonState): void {

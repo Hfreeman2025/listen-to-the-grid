@@ -1,7 +1,7 @@
 # Dependencies
 node_modules/
 
-# Build output (dist-next/ is a build made beside a dist/ in use; site/ a served copy)
+# Build output (dist-next/ is a build made beside a dist/ in use; site/ a served copy; renders/ the measurement renders)
 dist/
 dist-next/
 dist-radio/
@@ -15,7 +15,8 @@ renders/
 .eslintcache
 *.tsbuildinfo
 
-# Test runs and temporary browser profiles
+# Test runs, their screenshots and records (shots/), and temporary browser profiles
+/shots/
 playwright-report/
 test-results/
 .playwright/
@@ -33,7 +34,7 @@ browser-profile*/
 .npmrc
 secrets/
 
-# Model weights: shared ones live in ~/Personal/.models/, never in a repo
+# Model weights never belong in the repository
 .models/
 *.onnx
 *.safetensors
@@ -42,6 +43,9 @@ secrets/
 *.pt
 *.ckpt
 
-# Logs and OS files
+# Logs, editors and OS files
 *.log
 .DS_Store
+.vscode/
+.idea/
+*.swp

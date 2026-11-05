@@ -1,11 +1,13 @@
-import { BAR_SECONDS, STEP_SECONDS, type Bar } from '../music/conductor';
+import { BAR_SECONDS, type Bar, STEP_SECONDS } from '../music/conductor';
 import type { Mode } from '../music/theory';
+import { type Engraved, engraveBar, type Tail } from '../notation/engrave';
+import { engraveFrame, engraveOssiaFrame, type Frame } from '../notation/frame';
+import type { Mark } from '../notation/marks';
+import { CURSOR, canvasFontsReady, INK, MONO_FONT, MUSIC_FONT, paintMark, paintMarks, SANS_FONT } from '../notation/paint';
+import { OSSIA_SCALE, TIER_1, tierAbove } from '../notation/staves';
 import type { BarPair } from '../player';
-import { OSSIA_SCALE, TIER_1, engraveBar, engraveFrame, engraveOssiaFrame, ossiaHeight, staffPositions, tierAbove, type Engraved, type Frame, type Mark, type Tail } from '../notation/engrave';
-import { MONO_FONT, MUSIC_FONT, SANS_FONT, canvasFontsReady, paintMark, paintMarks } from '../notation/paint';
-
-export const INK = '#1a1714';
-export const CURSOR = '#c23b22';
+import { type Layout, layoutFor } from './layout';
+import type { Page } from './page';
 
 export interface ScoreOptions {
   /** reduced motion: no cursor, each bar appears whole at its bar line */
@@ -14,89 +16,8 @@ export interface ScoreOptions {
   cue: (bar: number, start: number) => string | undefined;
 }
 
-/** A bar engraved before the music reaches it: a half-hour already past. */
-export interface PageBar {
-  bar: Bar;
-  /** its time, printed over the bar: "16:30" */
-  label: string;
-  /** its number in the day's score, one bar a half-hour */
-  number: number;
-}
-
-/**
- * What the page shows.
- *
- * `standing`: a moment, live or held. The half-hours before it are engraved
- * from their own figures, and the system's last bar is the music playing now,
- * inked as it sounds and written afresh each bar until the moment moves on.
- *
- * `flowing`: a day being replayed, an hour a bar, written as it sounds from
- * music bar `from`, turning the page at the end of each system.
- */
-export type Page =
-  | { kind: 'standing'; key: string; past: readonly PageBar[]; now: { label: string; number: number; live: boolean }; note: string }
-  | { kind: 'flowing'; key: string; from: number };
-
-/** Bars per system for a canvas width: four on a desktop, two on a phone. */
-export function barsPerSystem(width: number): number {
-  return width >= 760 ? 4 : width >= 520 ? 3 : 2;
-}
-
 /** The words over the ossia: what it is, and that it is not a reading. */
-export const OSSIA_LABEL = 'ossia: fully renewable, hypothetical';
-
-interface Layout {
-  w: number;
-  h: number;
-  dpr: number;
-  sp: number;
-  bars: number;
-  short: boolean;
-  /** y of the system's top (its tiers above the first staff) */
-  top: number;
-  /** y of the ossia block above the system, when there is one */
-  ossiaTop: number;
-}
-
-/** Size a canvas to its box and work out the system's staff space and bar count, leaving room for an ossia if asked. */
-function layoutFor(canvas: HTMLCanvasElement, extra: HTMLCanvasElement[] = [], ossia = false): Layout {
-  const rect = canvas.getBoundingClientRect();
-  const dpr = Math.min(2, window.devicePixelRatio || 1);
-  const w = rect.width;
-  const h = rect.height;
-  const above = ossia ? ossiaHeight() : 0;
-  const height = staffPositions().height + above;
-  const sp = Math.max(4.2, Math.min(9, (h - 8) / height));
-  for (const c of [canvas, ...extra]) {
-    c.width = Math.round(w * dpr);
-    c.height = Math.round(h * dpr);
-  }
-  const top = Math.max(2, (h - height * sp) / 2);
-  return { w, h, dpr, sp, bars: barsPerSystem(w), short: w < 640, top: top + above * sp, ossiaTop: top };
-}
-
-/**
- * The page before the orchestra arrives: an empty system, staves, clefs and
- * names engraved, waiting for its first bar. Shown while NESO is asked.
- */
-export async function paintBlankPage(canvas: HTMLCanvasElement): Promise<void> {
-  const ctx = canvas.getContext('2d');
-  if (!ctx) return;
-  const L = layoutFor(canvas);
-  const { marks } = engraveFrame({ sp: L.sp, top: L.top, width: L.w, bars: L.bars, mode: 'dorian', short: L.short, time: true });
-  const draw = (all: boolean): void => {
-    ctx.setTransform(L.dpr, 0, 0, L.dpr, 0, 0);
-    ctx.clearRect(0, 0, L.w, L.h);
-    paintMarks(ctx, all ? marks : marks.filter((m) => m.k === 'line' || m.k === 'rect' || m.k === 'text'), L.sp, INK);
-  };
-  draw(false);
-  try {
-    await canvasFontsReady();
-    draw(true);
-  } catch {
-    // no music font: the staves alone still read as a page
-  }
-}
+const OSSIA_LABEL = 'ossia: fully renewable, hypothetical';
 
 /**
  * The live score, one system at a time like a page of a printed score. A
@@ -245,7 +166,16 @@ export class Score {
   /** Clear the page and engrave its frame, then the bars already known. */
   private startPage(mode: Mode, time: boolean): Frame {
     const L = this.layout;
-    const { frame, marks } = engraveFrame({ sp: L.sp, top: L.top, width: L.w, bars: L.bars, mode, short: L.short, time, cueSize: this.cueSize });
+    const { frame, marks } = engraveFrame({
+      sp: L.sp,
+      top: L.top,
+      width: L.w,
+      bars: L.bars,
+      mode,
+      short: L.short,
+      time,
+      cueSize: this.cueSize,
+    });
     this.frame = frame;
     this.ossiaFrame = null;
     this.headTop = Infinity;
@@ -325,7 +255,15 @@ export class Score {
     });
     // Bars the data cannot fill stay empty, and say why.
     if (empty > 0) {
-      main?.marks.push({ k: 'text', x: frame.firstBarX + 0.4 * sp, y: (frame.ys[0] ?? 0) - 2 * sp - TIER_1 * sp, text: page.note, style: 'italic', align: 'left', size: this.cueSize * 1.1 });
+      main?.marks.push({
+        k: 'text',
+        x: frame.firstBarX + 0.4 * sp,
+        y: (frame.ys[0] ?? 0) - 2 * sp - TIER_1 * sp,
+        text: page.note,
+        style: 'italic',
+        align: 'left',
+        size: this.cueSize * 1.1,
+      });
     }
     // The ossia stands over the present only: the past is as it was.
     this.startOssia(n - 1, 1, this.bars.get(barIndex)?.ossia.mode ?? 'lydian');
@@ -335,7 +273,11 @@ export class Score {
     this.live = -1;
     const when = past.length > 0 ? `the half-hours from ${past[0]?.label ?? ''} engraved, then ` : '';
     const ossia = this.ossia ? ` Above it, an ossia: the same half-hour re-scored for a hypothetical, fully renewable grid.` : '';
-    this.finishPage(page.key, 'standing', `The score: ${when}the ${page.now.live ? 'live' : 'held'} half-hour from ${page.now.label.replace(/ \D.*$/, '')}, written as it plays.${ossia}`);
+    this.finishPage(
+      page.key,
+      'standing',
+      `The score: ${when}the ${page.now.live ? 'live' : 'held'} half-hour from ${page.now.label.replace(/ \D.*$/, '')}, written as it plays.${ossia}`,
+    );
     this.canvas.dataset.past = past.map((p) => p.label).join(',');
     this.canvas.dataset.now = page.now.label;
     this.canvas.dataset.note = empty > 0 ? page.note : '';
@@ -392,7 +334,16 @@ export class Score {
     const o = this.ossiaFrame;
     if (o) {
       // Its label runs left from the system's end, over the half-hours past, where there is room.
-      const alt = engraveBar(entry.ossia, { frame: o, slot: 0, previous: null, tails: [], firstInSystem: true, whole, restart: true, label: this.ossiaLabel(o.staffRight, 'right') });
+      const alt = engraveBar(entry.ossia, {
+        frame: o,
+        slot: 0,
+        previous: null,
+        tails: [],
+        firstInSystem: true,
+        whole,
+        restart: true,
+        label: this.ossiaLabel(o.staffRight, 'right'),
+      });
       this.ossiaEngraved = new Map([[index, alt]]);
       items.push(...this.timed(alt.marks, entry.start, o.sp));
     }
@@ -501,7 +452,10 @@ export class Score {
       items.push(...this.timed(alt.marks, entry.start, o.sp));
     }
     // Merge into the part of the queue not yet inked, keeping time order.
-    const pending = this.queue.slice(this.shown).concat(items).sort((a, b) => a.t - b.t);
+    const pending = this.queue
+      .slice(this.shown)
+      .concat(items)
+      .sort((a, b) => a.t - b.t);
     this.queue = this.queue.slice(0, this.shown).concat(pending);
   }
 

@@ -1,16 +1,18 @@
 # Listen to the Grid
 
-Great Britain's electricity grid, played live as an orchestral score. Each source of power has its own staff and
-its own voice: wind is a string pad, solar rings bells, gas holds a low drone, nuclear keeps a steady pulse, hydro
-runs like water, biomass sings, imports arrive as distant chords, and coal (should it ever return) is grit. Each
-plays louder the bigger its share of generation, and carbon intensity chooses the key: a clean grid plays in bright
-modes, a dirty one turns minor. The score is engraved as you listen, a note inked the moment it sounds. Pick any
-day since 12 May 2018 and the page presses it as a record: a minute of audio rendered in your browser, with the
-day's own score as its sleeve.
+[![Harry Freeman](docs/brand/hf-badge.svg)](https://harryfreeman.dev)
 
-![The live score](shots/v2/live-desktop.png)
+Great Britain's electricity grid, played live as an orchestral score from the National Energy System Operator's
+half-hourly figures. Each source of power has its own staff and its own voice (wind a string pad, solar bells, gas
+a low drone, nuclear a steady pulse) and plays louder the bigger its share; carbon intensity chooses the key, so a
+clean grid sounds bright and a dirty one turns minor. The score is engraved as you listen, any day since May 2018
+can be pressed as a one-minute record with its score as the sleeve, and an *ossia* re-scores the moment for a fully
+renewable grid, loudness-matched so the comparison is fair. It is a way to hear what the grid is doing, and how
+much of it is gas right now, without reading a chart.
 
-## Quickstart
+![The live score: the half-hours just past engraved, the live half-hour being written under a red cursor](docs/live.png)
+
+## Try it
 
 Needs Node 22.12 or later.
 
@@ -19,199 +21,157 @@ npm ci
 npm run dev
 ```
 
-Open the address Vite prints (http://localhost:5173 unless that port is busy) and press **Listen**. To build the
-static site and serve it as it would be deployed:
+Open the address Vite prints (`http://localhost:5173` unless that port is busy) and press **Listen**. The page
+reads NESO's public [Carbon Intensity API](https://carbonintensity.org.uk/) straight from your browser: no key, no
+account, no server of its own. If the API can't be reached, the page says it is offline and plays a bundled
+recording of a real day, labelled with that day's date. No model or other download is involved.
 
 ```sh
-npm run build
+npm run build     # the static site, in dist/: about 71 kB of gzipped JavaScript
 npm run preview
 ```
 
-`dist/` is plain static files (about 71 kB of gzipped JavaScript, plus a 1.5 kB loudness worker) and can be hosted anywhere. To build beside a
-`dist/` that is being served, use `npx vite build --outDir dist-next` and test it with `DIST=dist-next npm run shots`. Link to a region with
-`?region=north-scotland`, `?region=london` and so on (the slugs are in `src/data/regions.ts`).
+Link to a region with `?region=north-scotland`, `?region=london` and so on (the slugs are in `src/data/regions.ts`).
+`npm run build:radio` builds the piece without its score as a module another page can embed; see
+[radio/README.md](radio/README.md).
 
-## Any day, pressed as a record
+**Checks.** `npm run check` runs the typecheck, lint, formatting, unit tests and dependency licences; CI runs the
+same and both builds. The browser suites drive real Chromium, WebKit and Firefox against NESO's live figures, so
+they run locally, one browser at a time, and not in CI:
 
-Choose a day under **Any day, pressed as a record** and press. The page fetches that day from NESO (two requests;
-yesterday is already on the page and costs none), composes it one bar an hour (23, 24 or 25 bars, whatever the
-clocks did), engraves the sleeve, then renders the same bars offline with the same engine the page plays live,
-faster than real time. You get:
+```sh
+npx playwright install chromium webkit firefox   # once
+npm run shots         # every state at 1440×900 and 390×844, with behaviour checks, into shots/
+npm run radio:check   # the radio embedded behind a strict Content-Security-Policy
+npm run measure       # offline renders: levels, clipping, clicks, phrasing, brightness
+node scripts/measure-audio.mjs --loudness   # how fair the ossia's loudness match is
+npm run perf          # first engraved paint and frame cost during a replay
+npm run silence       # macOS only: proves no browser the scripts drive opens an audio device
+```
 
-- a 16-bit, 44.1 kHz stereo WAV of about a minute, with its title, artist, date and data credit inside it (RIFF
-  INFO and an ID3 tag) and the sleeve embedded as cover art;
-- the sleeve as a 2400 px PNG: the day's score as the first page of a printed edition, in three systems of eight
-  bars (night, day, evening), each bar labelled with its hour;
-- liner notes on the page: how many half-hours NESO had, the cleanest hour, the journey of keys.
-
-The same date and place always press the same record. Rendering takes about 3 seconds in WebKit, 5 to 12 seconds in
-Chromium and about a minute in Firefox, whose offline audio runs at roughly real time (it shows a running count
-instead of a percentage, since Firefox doesn't report progress).
-
-## Ossia: fully renewable
-
-An ossia is the engraver's alternative passage, printed in small staves above the music. Press **Ossia: fully
-renewable** (or **O**) and the moment you are hearing is re-scored for a hypothetical grid that runs on wind, sun and
-water alone:
-
-- gas, coal, nuclear, biomass, imports and other are set to zero, and their share is handed to wind, solar and hydro
-  in proportion to each one's real share that half-hour (`src/music/ossia.ts`);
-- if a half-hour had no wind, sun or water at all, there is nothing to scale up, so the ossia gives the whole grid to
-  wind, the renewable that can run at any hour;
-- NESO's factors for wind, solar and hydro are 0 g CO₂/kWh, so the ossia is 0 g and the key ladder puts it in D
-  Lydian, *luminoso*.
-
-Both versions of every bar are always composed, by two conductors in step, so switching is instant and mid-bar: the
-sound changes without a restart and you hear the same moment real and renewable. The ossia is printed over the live
-bar (over every bar of a replayed day), labelled *ossia: fully renewable, hypothetical*, and the rule and its
-numbers (real mix against ossia mix, real grams against 0 g, real key against Lydian) appear under the controls. It
-never appears in the **Live** label or the live bar's time. Pressed with the ossia on, a record is the ossia's: its
-sleeve engraves only wind, solar and hydro, says *ossia* and *hypothetical* and marks the other parts tacet, and its
-file names and tags say so too.
-
-### A fair A/B: loudness matching with ITU-R BS.1770
-
-Louder sounds better to most ears, and the ossia, with its big wind and solar parts and a brighter key, measures 1.8
-to 2.7 LU louder than the real grid across the sample day. So the two are loudness-matched before you compare them,
-with the broadcast standard's integrated loudness,
-[ITU-R BS.1770-4](https://www.itu.int/rec/R-REC-BS.1770) (`src/audio/loudness.ts`): K-weighting (a high shelf for
-the head and a 38 Hz high pass), mean square over 400 ms blocks overlapping by 75%, an absolute gate at −70 LUFS and a
-relative gate 10 LU below, then the gated mean. It is tested against the standard's own 48 kHz filter coefficients
-and the [EBU Tech 3341](https://tech.ebu.ch/publications/tech3341) reference signals (cases 1 to 4, both gates).
-
-- **Live, per moment** (`src/audio/match.ts`, `src/ossia-loudness.ts`). When the ossia is on, the page renders the
-  moment both ways offline, in your browser, sixteen bars each at 48 kHz, measures each, and trims the ossia to the
-  real grid's loudness; the real grid keeps its own level. A replay is matched hour by hour, measuring the next hour
-  ahead. While listening to the real grid it measures in the background, so switching is usually matched at once;
-  until a moment is measured the last trim carries over, or, before any, the typical −2.2 dB, labelled provisional.
-  The arithmetic runs in a worker. A measurement takes about 1.5 to 7 seconds depending on the browser and the
-  machine, and the panel shows both loudnesses, the trims and the time it took.
-- **How fair.** At every other half-hour of the sample day the page's own measurement set the trim, and an
-  independent render of the same moment (other notes) checked it: the trimmed ossia and the real grid differ by
-  0.06 LU at the median and 0.25 LU at most (`node scripts/measure-audio.mjs --loudness`).
-- **Records.** Every pressed record, real or ossia, is measured and pressed to −16 LUFS (or as near as keeps its
-  sample peak under −1 dBFS), and its liner notes and tags say so. The browser checks re-measure the downloaded WAV
-  files in Node with the same meter.
-
-Why not give each fuel its own key, fossil fuels minor and renewables major, sounding at once? Major and minor
-thirds played together clash. The grid-wide key already says it: the cleaner the grid, the brighter the key, from D
-Lydian below 60 g CO₂/kWh to D Phrygian from 240 g.
-
-## The radio, for other pages
-
-`npm run build:radio` builds `dist-radio/`: one ES module, `listen-to-the-grid-radio.js` (39 KB gzipped), with its
-loudness worker in `assets/` (under 1 KB), its types, a README and the licence. It is the piece's own engine,
-conductor and data code from `src/` (`src/radio.ts` is the entry), with no score. Serve the folder as it is and
-`import { createRadio } from './listen-to-the-grid-radio.js'`; `createRadio({ region, version, volume })` returns
-`{ play(), stop(), state, on('state', fn) }`. `play()` must come from a click or key press, and nothing is fetched,
-made or opened before it; `stop()` closes the audio context. `state` is `off`, `loading`, `playing` or `failed`
-with a reason, names the half-hour playing and says when NESO is late; if NESO's live figures can't be had it
-fails and plays nothing, never the recording. `version: 'ossia'` plays the fully renewable hypothetical,
-loudness-matched with BS.1770 as on the page. It fetches only the latest half-hour from
-`https://api.carbonintensity.org.uk` (`/intensity` and `/generation`, or `/regional/regionid/{id}`), so a page with a
-Content-Security-Policy needs `connect-src https://api.carbonintensity.org.uk`, plus `worker-src` for the folder's
-own origin if it plays the ossia, and must credit "Data: Carbon Intensity API, © NESO, CC BY 4.0".
-`node scripts/radio-check.mjs` proves all of this in Chromium, WebKit and Firefox, silently.
+Every browser these scripts launch is silent (`scripts/silent.mjs`): the page gets an AudioContext with no output,
+Chromium runs with `--mute-audio` and Firefox at zero volume.
 
 ## How it works
 
 ```
-NESO Carbon Intensity API ──> zod schemas ──> half-hour series ──> arrange() ──> Conductor (a bar at a time)
-        (or bundled sample)      src/data          src/data          src/music        src/music
-                                                                                          ├──> AudioEngine (live, or offline for records)
-                                                                                          └──> engraver ──> live score / sleeve
+NESO Carbon Intensity API ──> zod schemas ──> half-hour series ──> arrange() ──> Conductor, a bar at a time
+     (or the bundled day)       src/data         src/data           src/music       src/music
+                                                                                       ├──> AudioEngine: live, or offline for records
+                                                                                       └──> engraver ──> live score, sleeve
 ```
 
-- **Data** (`src/data`, `src/feed.ts`). National figures from `/generation` and `/intensity`, the week from
-  `/generation/{from}/{to}` and `/intensity/{from}/{to}`, regions from `/regional/regionid/{id}` and
-  `/regional/intensity/{from}/{to}/regionid/{id}`. Every response is validated with zod, cached copies included.
-  The page polls a few minutes after each half-hour is due, keeps the week in `localStorage` for 25 minutes, and
-  enforces its network allowlist with a Content-Security-Policy: scripts, styles and fonts from the page itself,
-  data from NESO, nothing else.
-- **Composition** (`src/music`). Pure, seeded functions. Amplitude is the square root of a fuel's share. Intensity
-  picks one of six modes on D (Lydian under 60 g to Phrygian from 240 g, with 5 g of hysteresis). The conductor
-  writes a whole bar at a time in eight-bar phrases: one chord a bar, a half cadence at bar four and home to D at
-  bar eight, a sung motif that repeats and answers itself, bells that reply in the voice's gaps, and a swell across
-  each phrase that the engine plays and the score marks as hairpins. Every note is in the bar's key, so the score
-  never needs an accidental.
-- **Type.** One family, IBM Plex: Sans to read, Mono for data and records (the times over the bars, bar numbers,
-  figures, liner notes), Sans Condensed for signs (the wordmark, headings, instrument names). Noto Music draws the
-  notation, which Plex does not have. All self-hosted with `font-display: swap`. The first screen is set in three
-  faces (Sans 400, Sans 500, Condensed 600), and those three are preloaded, so nothing moves when they arrive:
-  layout shift measures 0.00000 at 1440×900 and 390×844 (it was 0.0009 and 0.0013 with the old Google-hosted type).
-  The canvases wait for every face they draw in before engraving. One quirk of the test setup: the preloads carry
-  `crossorigin`, as the Fetch standard loads fonts, and Chromium and Firefox reuse them. Served by Vite's preview
-  server, which answers with `Vary: Origin` and `Cache-Control: no-cache`, WebKit did not: it fetched those three
-  faces twice and logged a warning (it reused them only without `crossorigin`, which Chromium then refuses). On a
-  plain static server without those headers, WebKit reused the same preloads once with no warning, so the headers
-  are the likely cause, not WebKit generally. The browser checks allow that one WebKit message, for those three
-  files only.
-- **Engraving** (`src/notation`). Rhythm spelling that respects the beat and the middle of the bar, ties, rests,
-  beams, stems, ledger lines, octave clefs, modal key signatures (D Lydian is three sharps, D Phrygian two flats)
-  with double bar lines and cancelling naturals when the key changes, dynamics where they change, entry marks
-  (*l.v.*, *pizz.*, *lontano*), tempo and bar numbers. Clefs, rests, accidentals and dynamics are real glyphs from
-  Noto Music. The live page is one system that reads through the last two hours, a bar a half-hour: the
-  half-hours already past are engraved whole from their own figures (composed from midnight with a seed from the day
-  and place, so a half-hour's bar never changes as the page moves on), and the last bar is the live half-hour, inked
-  note by note as it sounds, with a red cursor following. Its bar numbers count the day's half-hours (17:00 is bar
-  35). Hairpins are drawn bar by bar, so a swell can cross a bar line and stops at any new dynamic. A replayed day is
-  written an hour a bar on pages that fill and turn.
-- **Sound** (`src/audio`). A hand-written Web Audio graph: detuned-saw drone, four-voice pad with portamento, FM
-  bells, a felt pulse, a formant singer, filtered-noise water, plucks and grit; per-voice buses with a phrase
-  expression stage; a generated convolution reverb; then high-pass, tone, a light glue compressor, a limiter and a
-  soft clip. Every data change is a ramp.
-- **Honesty.** The page says whether a figure is measured or forecast, which half-hour it is, when it was checked,
-  and that regional figures are modelled. The score's earlier bars are half-hours NESO published, never filled in
-  across a gap; while the week is loading, or if it fails, they stay empty and say so. Only the newest half-hour is
-  called live, in red; a late one is the latest, and a held or recorded one carries its time alone. Offline it
-  plays `src/data/sample-day.json`, a real recording of Wednesday 28 October 2026, labelled with that date and never
-  called live.
+- **Data** (`src/data`, `src/feed.ts`). The latest half-hour from `/generation` and `/intensity` (or
+  `/regional/regionid/{id}`), and the last week from their range endpoints. Every response is validated with zod,
+  cached copies included. The page asks a few minutes after each half-hour is due, keeps the week for 25 minutes,
+  and a Content-Security-Policy lets it talk to nothing but its own files and NESO.
+- **Composition** (`src/music`). Pure, seeded functions. A fuel's amplitude is the square root of its share. Carbon
+  intensity picks one of six modes on D, from Lydian below 60 g CO₂/kWh to Phrygian from 240 g, with 5 g of
+  hysteresis so a value on a boundary doesn't flicker. The conductor writes a bar at a time in eight-bar phrases:
+  one chord a bar, a half cadence at bar four and home to D at bar eight, a sung motif that repeats and answers
+  itself, and a swell across each phrase that the engine plays and the score marks as hairpins. Every note is in
+  the bar's key, so the score never needs an accidental.
+- **Engraving** (`src/notation`). Rhythm spelt to show the beat and the middle of the bar, ties, rests, beams,
+  ledger lines, octave clefs, modal key signatures (D Lydian is three sharps, D Phrygian two flats) with cancelling
+  naturals at a change, dynamics where they change, entry words (*l.v.*, *pizz.*, *lontano*) lifted clear of the
+  notes, tempo and bar numbers. Clefs, rests, accidentals and dynamics are glyphs from Noto Music. The live page is
+  one system through the last two hours: the half-hours already past engraved whole from their own figures, then
+  the live half-hour inked note by note as it sounds, with a red cursor following. A replayed day turns pages.
+- **Sound** (`src/audio`). A hand-written Web Audio graph, no samples: a detuned-saw drone, a four-voice pad, FM
+  bells, a felt pulse, a formant singer, filtered-noise water, plucks and grit; per-voice buses, a generated
+  convolution reverb, then a glue compressor, a limiter and a soft clip. Every change of data is a ramp.
+- **Records** (`src/record.ts`). A day is fetched (two requests), composed an hour a bar, engraved as a 2400 px
+  sleeve and rendered offline by the same engine, faster than real time: a 16-bit, 44.1 kHz WAV with RIFF INFO and
+  ID3 tags and the sleeve as cover art. The same date and place always press the same record.
+- **The ossia** (`src/music/ossia.ts`). Gas, coal, nuclear, biomass, imports and other are set to zero and their
+  share handed to wind, solar and hydro in proportion to each one's real share (all wind if none generated). NESO
+  counts all three at 0 g, so the ossia plays at 0 g, in D Lydian. Both versions are always composed, by two
+  conductors in step, so switching is instant and mid-bar. The ossia is printed in small staves over the live bar,
+  labelled hypothetical, and never appears in the live label.
+- **Loudness** (`src/audio/loudness.ts`, `src/audio/match.ts`). Louder sounds better to most ears, so before you
+  compare them the ossia is trimmed to the real grid's integrated loudness, measured as
+  [ITU-R BS.1770-4](https://www.itu.int/rec/R-REC-BS.1770) specifies: K-weighting (a high shelf and a 38 Hz high
+  pass), mean square over 400 ms blocks overlapping by 75%, an absolute gate at −70 LUFS and a relative gate 10 LU
+  below, then the gated mean. The page renders sixteen bars of the moment both ways offline at 48 kHz, in a
+  worker, and applies the trim; until a moment is measured it uses the last trim, or a typical −2.2 dB labelled
+  provisional. Records, real or ossia, are pressed to −16 LUFS, or as near as keeps their sample peak
+  under −1 dBFS.
+- **Honesty** (`src/ui/readout.ts`). The page says whether a figure is measured or forecast, which half-hour it is,
+  when it was checked, and that regional figures are modelled. Only the newest half-hour is called live; a late
+  one is "latest"; past bars are only ever half-hours NESO published, never filled in across a gap.
+- **Type.** IBM Plex (Sans to read, Mono for data, Sans Condensed for signs) and Noto Music for notation, served
+  from the page itself. The three faces of the first screen are preloaded so nothing moves when they arrive. The
+  design (medium, type, palette, what moves and what it refuses) is written down in [IDENTITY.md](IDENTITY.md).
 
-## Checks
+## What it measures / proves
 
-```sh
-npm run check     # typecheck, lint, unit tests, dependency licences
-npm run measure   # renders the instrument offline: levels, clipping, clicks, phrasing, brightness
-npm run shots     # every state at 1440×900 and 390×844 into shots/v2/, with checks in Chromium, WebKit, Firefox
-node scripts/perf.mjs   # first engraved paint and frame cost during a replay, in all three browsers
-npm run silence   # proves the automation is silent: no browser it drives holds a macOS audio assertion
-```
+- **The sound, by numbers** (`npm run measure`, offline renders at 48 kHz). The bundled day played in 60 seconds:
+  RMS −16.5 dBFS, sample peak −2.9 dBFS, no clipped samples. Two eight-bar phrases over a steady mix: the loudness
+  of each bar follows the intended swell (correlation 0.78) across 3.7 dB.
+- **The loudness meter is the standard's.** Unit tests reproduce BS.1770's 48 kHz K-weighting coefficients and pass
+  [EBU Tech 3341](https://tech.ebu.ch/publications/tech3341) cases 1 to 4, which test both gates.
+- **The A/B is fair.** Unmatched, the ossia measures 1.8 to 2.7 LU louder than the real grid across the sample day
+  (median 2.2). At every other half-hour the page's own measurement set the trim, and an independent render of
+  the same moment, with other notes, checked it: the trimmed ossia and the real grid differ by 0.06 LU at the
+  median and 0.25 LU at most (`node scripts/measure-audio.mjs --loudness`).
+- **Records are at the level they claim.** The browser suite downloads each pressed WAV and re-measures it in Node
+  with the same meter: −16.0 LUFS, within ±0.15 LU, as the liner notes say.
+- **Nothing moves on load.** Cumulative layout shift is 0.00000 at 1440×900 and 390×844, from first paint through
+  the data and the type arriving (Chromium's layout-shift API, in `npm run shots`).
+- **The automation is silent.** `npm run silence` samples macOS's power assertions throughout a full run; no
+  browser process the scripts start ever holds an audio assertion.
+- **The behaviour holds in three engines.** `npm run shots`: 77 checks in Chromium (both sizes), 39 in WebKit and 39
+  in Firefox, with zero console errors. `npm run radio:check`: 7 of 7 in each, including that `play()` is the only
+  path to sound and that, when NESO can't be reached, the radio fails with a reason and makes no sound.
+- **Unit tests:** 183, asserting concrete values for the tricky core: schemas against real responses, UK days
+  across clock changes, the conductor (in key, spellable rhythms, phrases that come home), rhythm spelling, key
+  signatures, hairpins and ties across bar lines, the half-hours before now, the ossia's mix, the loudness meter
+  and trim, and the WAV writer.
 
-Every browser these scripts drive is silent and opens no audio device: `scripts/silent.mjs` gives the page a live
-AudioContext with no output (an OfflineAudioContext that is never rendered, keeping real time), and adds
-`--mute-audio` in Chromium and a zero volume scale in Firefox. Records and measurements render offline to memory,
-as they always do.
+## Limits
 
-The unit tests assert concrete values for the tricky core: API schemas against real responses, UK days across
-clock changes, the scale quantiser, voice leading, the mapping, the conductor (in key, spellable rhythms, phrases
-that come home, a steady pulse), rhythm spelling, staff positions and key signatures, hairpins and ties across
-bar lines, the half-hours before now (gaps never bridged, a past bar unchanged as the page moves on), the ossia's
-mix (shares sum to 1, zero fossil and other, proportions kept, the fallback, Lydian at 0 g), whole-day composition,
-BS.1770 loudness (the standard's filter coefficients, EBU Tech 3341 cases 1 to 4, gain tracking, silence), the
-ossia's trim and the record level, the matcher's queue, the WAV and ID3 writer, the reverb impulse and the readouts. `npm run shots` and `scripts/perf.mjs` use Playwright, a
-dev dependency here (`npx playwright install chromium webkit firefox` once).
+- It is half-hourly and behind real time: it plays the newest half-hour NESO has published. NESO marks the
+  generation mix as beta, intensity is NESO's forecast where no measured figure is out yet, and regional figures are
+  modelled estimates. The page labels all three.
+- The music is a mapping, not a measurement. Square-root loudness, the six modes and their thresholds are design
+  choices; they make changes audible, they don't make them precise.
+- The ossia is a deliberately simple hypothetical. Scaling renewables up in proportion ignores storage,
+  curtailment, interconnectors and when demand happens, and 0 g counts only operational emissions, as NESO does.
+- Loudness matching equalises integrated loudness, not timbre: the ossia still sounds brighter, by design. The
+  first switch can use the provisional trim for a few seconds while a moment is measured (1.5 to 7 s, depending on
+  the machine and browser).
+- Records render in about 3 seconds in WebKit and 5 to 12 in Chromium, but about a minute in Firefox, whose offline
+  audio runs at roughly real time.
+- Sound needs a click or key press first, as every browser requires, and the page needs JavaScript.
+- The browser suites need the network and run locally only; the silence check needs macOS. Served by Vite's
+  preview server, WebKit warns that the three preloaded fonts were fetched twice; on a plain static server it
+  doesn't, and the suite allows that one message for those three files only.
 
-`shots/v2/yesterday.wav` is a real record pressed by the page: Saturday 31 October 2026.
+## How it was built
 
-## Dependencies
+Designed, specified and reviewed by Harry Freeman; built with AI coding agents.
 
-One runtime dependency, zod (MIT), run in jitless mode so the page can forbid `eval`. Build and test tools: Vite,
-Vitest, TypeScript, ESLint, typescript-eslint and Playwright. `npm run licences` checks every installed package
-against MIT, Apache-2.0, BSD and ISC. Keeping that true needs two pins: ESLint stays on 9.x and typescript-eslint on
-8.56 (later versions need a BlueOak-licensed minimatch), and `argparse` is pinned to its MIT 1.x (ESLint pulls in the
-Python-licensed 2.x through js-yaml, which uses it only for its own command line). The cost is one moderate npm
-advisory (GHSA-g3hv-75wg-m249) in that dev-only lint toolchain. Production dependencies audit clean.
-
-## Credits
-
-- Data: [Carbon Intensity API](https://carbonintensity.org.uk/) by the National Energy System Operator (NESO,
-  formerly National Grid ESO), licensed under [CC BY 4.0](https://creativecommons.org/licenses/by/4.0/) and used
-  under its [API terms](https://github.com/carbon-intensity/terms).
-- Type: [IBM Plex](https://github.com/IBM/plex) (Sans, Mono and Sans Condensed) and
-  [Noto Music](https://github.com/notofonts/music), both under the SIL Open Font License 1.1 and served from the
-  page itself (`public/fonts/`, from @fontsource 5.3.0): no font requests leave the site. Each file, its size, source
-  and licence are listed in [LICENCES.md](LICENCES.md).
+- **The brief:** the bar for every piece in his lab: something that holds you within five seconds, a finish that
+  reads as craft, honest data, strict types and real tests.
+- **Version 2:** an engraved orchestral score that sounds good, and the ability to press any day as a record.
+- **Version 3:** a fair A/B, the fully renewable ossia loudness-matched to the real grid with ITU-R BS.1770, built
+  under his machine rules for the lab, including browser automation that makes no sound.
+- **Review:** versions 1 and 2 were reviewed and accepted before the next brief built on each. Since then the piece
+  has been re-set in IBM Plex and packaged as a radio for his site.
 
 ## Licence
 
-MIT. Copyright (c) 2026 Harry Freeman.
+MIT, copyright (c) 2026 Harry Freeman: see [LICENSE](LICENSE).
+
+- Data: [Carbon Intensity API](https://carbonintensity.org.uk/) by the National Energy System Operator (NESO,
+  formerly National Grid ESO), licensed under [CC BY 4.0](https://creativecommons.org/licenses/by/4.0/) and used
+  under its [API terms](https://github.com/carbon-intensity/terms). `src/data/sample-day.json` holds NESO's own
+  responses for Wednesday 28 October 2026, trimmed to the day.
+- Type: [IBM Plex](https://github.com/IBM/plex) and [Noto Music](https://github.com/notofonts/music), both under the
+  SIL Open Font License 1.1, in `public/fonts/`; each file is listed in [LICENCES.md](LICENCES.md).
+- Code: one runtime dependency, zod (MIT). `npm run licences` checks every installed package against MIT,
+  Apache-2.0, BSD and ISC; keeping that true pins ESLint to 9.x, typescript-eslint to 8.56 and `argparse` to its MIT
+  1.x, at the cost of one moderate npm advisory (GHSA-g3hv-75wg-m249) in the dev-only lint toolchain. Production
+  dependencies audit clean.
+- The badge in `docs/brand/` is Harry Freeman's mark, outside the MIT licence: see
+  [docs/brand/LICENSE.md](docs/brand/LICENSE.md).

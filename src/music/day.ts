@@ -1,7 +1,7 @@
 import type { Mix } from '../data/schema';
-import { sampleAt, type GridPeriod } from '../data/series';
+import { type GridPeriod, sampleAt } from '../data/series';
 import { HOUR, type Span } from '../data/time';
-import { BAR_SECONDS, Conductor, type Bar } from './conductor';
+import { BAR_SECONDS, type Bar, Conductor } from './conductor';
 import { arrange } from './mapping';
 
 /** Seconds the hall rings on after the last bar of a record. */
@@ -43,7 +43,11 @@ export function composeDay(
   const at = (t: number): { mix: Mix; grams: number } => {
     const d = span.start + (Math.min(music, Math.max(0, t)) / BAR_SECONDS) * HOUR;
     const snap = sampleAt(series, d);
-    return version(snap ? { mix: snap.mix, grams: snap.intensity } : { mix: { solar: 0, wind: 0, hydro: 0, biomass: 0, imports: 0, nuclear: 0, other: 0, coal: 0, gas: 1 }, grams: 300 });
+    return version(
+      snap
+        ? { mix: snap.mix, grams: snap.intensity }
+        : { mix: { solar: 0, wind: 0, hydro: 0, biomass: 0, imports: 0, nuclear: 0, other: 0, coal: 0, gas: 1 }, grams: 300 },
+    );
   };
   const conductor = new Conductor(seed);
   const bars: Bar[] = [];

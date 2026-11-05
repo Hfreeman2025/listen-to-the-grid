@@ -8,23 +8,13 @@ z.config({ jitless: true });
  * Fuels in score order: highest voice at the top of the page, bass at the
  * bottom, the way an orchestral score is laid out.
  */
-export const FUELS = [
-  'solar',
-  'wind',
-  'hydro',
-  'biomass',
-  'imports',
-  'nuclear',
-  'other',
-  'coal',
-  'gas',
-] as const;
+export const FUELS = ['solar', 'wind', 'hydro', 'biomass', 'imports', 'nuclear', 'other', 'coal', 'gas'] as const;
 export type Fuel = (typeof FUELS)[number];
 
 /** Generation shares as fractions of 1 (the API reports percentages). */
 export type Mix = Record<Fuel, number>;
 
-export function isFuel(s: string): s is Fuel {
+function isFuel(s: string): s is Fuel {
   return (FUELS as readonly string[]).includes(s);
 }
 
@@ -57,7 +47,7 @@ const generationPeriod = z
   })
   .refine((p) => p.to > p.from, 'period ends before it starts');
 
-export const intensityIndex = z.enum(['very low', 'low', 'moderate', 'high', 'very high']);
+const intensityIndex = z.enum(['very low', 'low', 'moderate', 'high', 'very high']);
 export type IntensityIndex = z.infer<typeof intensityIndex>;
 
 const intensityPeriod = z

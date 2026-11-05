@@ -1,7 +1,7 @@
 import { describe, expect, it } from 'vitest';
-import { composeDay, seedFor, TAIL_SECONDS } from '../src/music/day';
 import type { GridPeriod } from '../src/data/series';
 import { HALF_HOUR, londonDay } from '../src/data/time';
+import { composeDay, seedFor, TAIL_SECONDS } from '../src/music/day';
 import { sleeveRows } from '../src/visual/sleeve';
 
 function day(t: number): { span: { start: number; end: number }; series: GridPeriod[] } {
@@ -9,7 +9,14 @@ function day(t: number): { span: { start: number; end: number }; series: GridPer
   const series: GridPeriod[] = [];
   for (let s = span.start; s < span.end; s += HALF_HOUR) {
     const k = (s - span.start) / (span.end - span.start);
-    series.push({ start: s, end: s + HALF_HOUR, mix: { solar: 0, wind: 1 - k, hydro: 0, biomass: 0, imports: 0, nuclear: 0, other: 0, coal: 0, gas: k }, intensity: 40 + 220 * k, measured: true, index: 'moderate' });
+    series.push({
+      start: s,
+      end: s + HALF_HOUR,
+      mix: { solar: 0, wind: 1 - k, hydro: 0, biomass: 0, imports: 0, nuclear: 0, other: 0, coal: 0, gas: k },
+      intensity: 40 + 220 * k,
+      measured: true,
+      index: 'moderate',
+    });
   }
   return { span, series };
 }

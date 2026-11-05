@@ -1,6 +1,6 @@
-import { LoudnessMatcher, PROVISIONAL_TRIM_DB, type Match } from './audio/match';
+import { LoudnessMatcher, type Match, PROVISIONAL_TRIM_DB } from './audio/match';
 import { describeError, fetchCurrent } from './data/api';
-import { regionFromSlug, type Region } from './data/regions';
+import { type Region, regionFromSlug } from './data/regions';
 import type { GridPeriod } from './data/series';
 import { isFresh } from './data/time';
 import { LiveFeed, liveSource } from './feed';
@@ -91,7 +91,12 @@ export function createRadio(options: RadioOptions = {}): Radio {
     const p: GridPeriod = s.latest;
     const fresh = isFresh(Date.now(), p.start) && s.failedSince === null;
     const key = `${region.slug}|${p.start}`;
-    const loudness = version !== 'ossia' ? null : matched?.key === key ? { realLufs: matched.match.real, ossiaLufs: matched.match.ossia, trimDb: matched.match.trimDb } : { provisionalTrimDb: matched?.match.trimDb ?? PROVISIONAL_TRIM_DB };
+    const loudness =
+      version !== 'ossia'
+        ? null
+        : matched?.key === key
+          ? { realLufs: matched.match.real, ossiaLufs: matched.match.ossia, trimDb: matched.match.trimDb }
+          : { provisionalTrimDb: matched?.match.trimDb ?? PROVISIONAL_TRIM_DB };
     const reason = fresh
       ? `playing the grid of ${region.name}, ${periodLabel(p)}, the newest half-hour NESO has published`
       : s.failedSince !== null
@@ -102,7 +107,13 @@ export function createRadio(options: RadioOptions = {}): Radio {
       reason: version === 'ossia' ? `${reason}, re-scored as fully renewable (hypothetical)` : reason,
       region: region.slug,
       version,
-      halfHour: { start: new Date(p.start).toISOString(), end: new Date(p.end).toISOString(), label: periodLabel(p), measured: p.measured, modelled: region.id !== null },
+      halfHour: {
+        start: new Date(p.start).toISOString(),
+        end: new Date(p.end).toISOString(),
+        label: periodLabel(p),
+        measured: p.measured,
+        modelled: region.id !== null,
+      },
       stale: !fresh,
       loudness,
     });
@@ -164,7 +175,8 @@ export function createRadio(options: RadioOptions = {}): Radio {
         latest = await fetchCurrent(region);
       } catch (err) {
         await ctx.close();
-        if (mine === session) set({ status: 'failed', reason: `couldn’t reach NESO’s live figures (${describeError(err)}), so nothing is playing` });
+        if (mine === session)
+          set({ status: 'failed', reason: `couldn’t reach NESO’s live figures (${describeError(err)}), so nothing is playing` });
         return;
       }
       if (mine !== session) {
@@ -176,9 +188,14 @@ export function createRadio(options: RadioOptions = {}): Radio {
       next.setVersion(version);
       next.setTrim('ossia', PROVISIONAL_TRIM_DB);
       player = next;
-      feed = new LiveFeed(liveSource(region, latest, []), region, () => player !== null, (e) => {
-        if (e.type === 'updated') follow();
-      });
+      feed = new LiveFeed(
+        liveSource(region, latest, []),
+        region,
+        () => player !== null,
+        (e) => {
+          if (e.type === 'updated') follow();
+        },
+      );
       try {
         next.begin();
         await next.start(ctx);

@@ -1,0 +1,97 @@
+/*
+ * Identity: an engraved orchestral score. Black ink on score paper, one red
+ * (the conductor's pencil) for the cursor, focus and anything live. One type
+ * family, IBM Plex, served from this site: Sans to read, Mono for data and
+ * records, Sans Condensed for signs (the wordmark, headings, labels). Noto
+ * Music engraves the score's symbols.
+ */
+:root {
+  --paper: #f4efe6;
+  --ink: #1a1714;
+  --ink-soft: #5a5249;
+  --rule: rgba(26, 23, 20, 0.18);
+  --red: #c23b22;
+  /* the same red deepened to 5.9:1 on paper, for small text */
+  --red-text: #a8301b;
+  /* Noto Music after Plex, for the odd sharp or flat in running text. */
+  --sans: "IBM Plex Sans", "Noto Music", "Helvetica Neue", Arial, sans-serif;
+  --mono: "IBM Plex Mono", "Noto Music", ui-monospace, Menlo, monospace;
+  --sign: "IBM Plex Sans Condensed", "IBM Plex Sans", "Arial Narrow", sans-serif;
+  --gutter: clamp(16px, 3.4vw, 48px);
+  --measure: 1560px;
+  color-scheme: light;
+}
+
+*,
+*::before,
+*::after {
+  box-sizing: border-box;
+}
+
+html {
+  -webkit-text-size-adjust: 100%;
+  text-size-adjust: 100%;
+  scroll-padding-top: 1rem;
+}
+
+body {
+  margin: 0;
+  color: var(--ink);
+  background: var(--paper);
+  font-family: var(--sans);
+  font-size: 1rem;
+  line-height: 1.55;
+  -webkit-font-smoothing: antialiased;
+}
+
+a {
+  color: inherit;
+  text-decoration-thickness: 1px;
+  text-underline-offset: 0.18em;
+}
+a:hover {
+  text-decoration-color: var(--red);
+}
+
+:focus-visible {
+  outline: 2px solid var(--red);
+  outline-offset: 3px;
+}
+
+[hidden] {
+  display: none !important;
+}
+
+.visually-hidden {
+  position: absolute !important;
+  width: 1px;
+  height: 1px;
+  margin: -1px;
+  padding: 0;
+  overflow: hidden;
+  clip: rect(0 0 0 0);
+  white-space: nowrap;
+  border: 0;
+}
+
+.skip {
+  position: absolute;
+  left: var(--gutter);
+  top: -3rem;
+  background: var(--ink);
+  color: var(--paper);
+  padding: 0.5rem 0.8rem;
+  z-index: 10;
+}
+.skip:focus {
+  top: 0.5rem;
+}
+
+.noscript {
+  max-width: var(--measure);
+  margin: 0 auto 1rem;
+  padding: 0 var(--gutter);
+  font-family: var(--sans);
+  font-style: italic;
+  font-size: 1.2rem;
+}

@@ -1,5 +1,5 @@
-import { BAR_SECONDS } from './music/conductor';
 import { HOUR, londonDay, londonDayStart, type Span } from './data/time';
+import { BAR_SECONDS } from './music/conductor';
 
 /** "Play yesterday in 60 seconds": one day of data per minute of music. */
 export const REPLAY_SPEED = (24 * HOUR) / 60_000;

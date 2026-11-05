@@ -1,4 +1,4 @@
-import { FUELS, toMix, type GenerationPeriod, type IntensityIndex, type IntensityPeriod, type Mix, type RegionalPeriod } from './schema';
+import { FUELS, type GenerationPeriod, type IntensityIndex, type IntensityPeriod, type Mix, type RegionalPeriod, toMix } from './schema';
 import { HOUR } from './time';
 
 /** One half-hour of the grid: what generated the power and how clean it was. */
@@ -26,10 +26,7 @@ export interface GridSnapshot {
  * Joins generation and intensity rows by period start. Rows missing from either
  * side are dropped rather than guessed; duplicates keep the later row.
  */
-export function mergeSeries(
-  generation: readonly GenerationPeriod[],
-  intensity: readonly IntensityPeriod[],
-): GridPeriod[] {
+export function mergeSeries(generation: readonly GenerationPeriod[], intensity: readonly IntensityPeriod[]): GridPeriod[] {
   const byStart = new Map<number, IntensityPeriod>();
   for (const row of intensity) byStart.set(row.from, row);
   const out = new Map<number, GridPeriod>();

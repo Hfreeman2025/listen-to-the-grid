@@ -1,4 +1,4 @@
-import type { GlyphName, Mark } from './engrave';
+import type { GlyphName, Mark } from './marks';
 
 /**
  * Draws engraved marks on a canvas. Music glyphs come from Noto Music, whose
@@ -12,8 +12,12 @@ export const MUSIC_FONT = '"Noto Music"';
 export const SANS_FONT = '"IBM Plex Sans", "Helvetica Neue", Arial, sans-serif';
 export const MONO_FONT = '"IBM Plex Mono", ui-monospace, Menlo, monospace';
 export const SIGN_FONT = '"IBM Plex Sans Condensed", "IBM Plex Sans", "Arial Narrow", sans-serif';
+/** Ink on score paper. */
+export const INK = '#1a1714';
+/** The conductor's red pencil: the cursor, and anything live. */
+export const CURSOR = '#c23b22';
 /** The conductor's red, darkened for small text: anything live. */
-export const LIVE_INK = '#a8301b';
+const LIVE_INK = '#a8301b';
 
 const CODE: Record<Exclude<GlyphName, 'dynamic'>, string> = {
   gClef: '\u{1D11E}',
@@ -35,10 +39,18 @@ const DYNAMIC: Record<string, string> = { p: '\u{1D18F}', m: '\u{1D190}', f: '\u
 /**
  * Every glyph the score draws: clefs, rests, accidentals, dynamics, the brace.
  */
-export const MUSIC_GLYPHS = [...Object.values(CODE), ...Object.values(DYNAMIC), '\u{1D114}'].join('');
+const MUSIC_GLYPHS = [...Object.values(CODE), ...Object.values(DYNAMIC), '\u{1D114}'].join('');
 
 /** Every Plex face the canvases draw words in. */
-const TEXT_FACES = [`400 16px ${SANS_FONT}`, `italic 400 16px ${SANS_FONT}`, `600 16px ${SANS_FONT}`, `400 16px ${MONO_FONT}`, `600 16px ${MONO_FONT}`, `500 16px ${SIGN_FONT}`, `600 16px ${SIGN_FONT}`];
+const TEXT_FACES = [
+  `400 16px ${SANS_FONT}`,
+  `italic 400 16px ${SANS_FONT}`,
+  `600 16px ${SANS_FONT}`,
+  `400 16px ${MONO_FONT}`,
+  `600 16px ${MONO_FONT}`,
+  `500 16px ${SIGN_FONT}`,
+  `600 16px ${SIGN_FONT}`,
+];
 
 /**
  * Resolves once every music glyph and every Plex face the canvases use can be
@@ -50,7 +62,8 @@ const TEXT_FACES = [`400 16px ${SANS_FONT}`, `italic 400 16px ${SANS_FONT}`, `60
  * again, or a page engraved now would keep fallback glyphs for good.
  */
 export async function canvasFontsReady(): Promise<unknown> {
-  const load = (): Promise<FontFace[][]> => Promise.all([document.fonts.load(`40px ${MUSIC_FONT}`, MUSIC_GLYPHS), ...TEXT_FACES.map((f) => document.fonts.load(f))]);
+  const load = (): Promise<FontFace[][]> =>
+    Promise.all([document.fonts.load(`40px ${MUSIC_FONT}`, MUSIC_GLYPHS), ...TEXT_FACES.map((f) => document.fonts.load(f))]);
   const [music] = await load();
   if (music && music.length > 0) return music;
   const pending = [...document.querySelectorAll<HTMLLinkElement>('link[rel="stylesheet"]')].filter((l) => !l.sheet);
@@ -69,7 +82,7 @@ export async function canvasFontsReady(): Promise<unknown> {
 /** Vertical offsets, in staff spaces, from the mark's anchor to the glyph's baseline. */
 const BASELINE: Partial<Record<GlyphName, number>> = { sharp: 0.54, natural: 0.54, flat: 0.5, dynamic: 1.5, quarterNote: 0 };
 
-export function dynamicText(dyn: string): string {
+function dynamicText(dyn: string): string {
   return Array.from(dyn, (c) => DYNAMIC[c] ?? c).join('');
 }
 
@@ -109,7 +122,8 @@ export function paintMark(ctx: CanvasRenderingContext2D, m: Mark, sp: number): v
       return;
     }
     case 'text': {
-      const size = m.size ?? (m.style === 'name' ? 1.55 : m.style === 'tempo' ? 1.75 : m.style === 'cue' ? 1.15 : m.style === 'number' ? 1.25 : 1.5);
+      const size =
+        m.size ?? (m.style === 'name' ? 1.55 : m.style === 'tempo' ? 1.75 : m.style === 'cue' ? 1.15 : m.style === 'number' ? 1.25 : 1.5);
       // Names are signs, times and bar numbers are data, tempo and expression are words.
       const face = m.style === 'name' ? SIGN_FONT : m.style === 'cue' || m.style === 'number' ? MONO_FONT : SANS_FONT;
       const weight = m.style === 'tempo' ? '600' : m.style === 'name' ? '500' : '400';

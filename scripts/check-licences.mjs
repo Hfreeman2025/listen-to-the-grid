@@ -50,7 +50,12 @@ for (const p of unique.values()) {
   counts.set(key, (counts.get(key) ?? 0) + 1);
   if (!allowed(p.license)) bad.push(p);
 }
-console.log(`${unique.size} packages: ${[...counts].sort((a, b) => b[1] - a[1]).map(([l, n]) => `${l} ${n}`).join(', ')}`);
+console.log(
+  `${unique.size} packages: ${[...counts]
+    .sort((a, b) => b[1] - a[1])
+    .map(([l, n]) => `${l} ${n}`)
+    .join(', ')}`,
+);
 if (process.argv.includes('--list')) for (const p of unique.values()) console.log(`  ${p.name}@${p.version}  ${p.license}`);
 if (bad.length > 0) {
   console.error('Not allowed:');

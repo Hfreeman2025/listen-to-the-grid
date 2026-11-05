@@ -1,9 +1,9 @@
 import { App, type Source } from './app';
 import { describeError, fetchCurrent, fetchHistory, loadSample } from './data/api';
+import { REGIONS, regionFromSlug } from './data/regions';
 import { liveSource } from './feed';
 import { elements } from './ui/elements';
-import { REGIONS, regionFromSlug } from './data/regions';
-import { paintBlankPage } from './visual/score';
+import { paintBlankPage } from './visual/layout';
 
 async function boot(): Promise<void> {
   const el = elements();
@@ -20,11 +20,14 @@ async function boot(): Promise<void> {
   let source: Source;
   try {
     const latest = await fetchCurrent(region);
-    const early = await Promise.race([settled, new Promise<null>((resolve) => {
-      setTimeout(() => {
-        resolve(null);
-      }, 1500);
-    })]);
+    const early = await Promise.race([
+      settled,
+      new Promise<null>((resolve) => {
+        setTimeout(() => {
+          resolve(null);
+        }, 1500);
+      }),
+    ]);
     source = liveSource(region, latest, early ?? undefined);
   } catch (err) {
     const sample = loadSample();

@@ -1,6 +1,6 @@
 import { AudioEngine } from './audio/engine';
 import type { Fuel } from './data/schema';
-import { BAR_SECONDS, Conductor, STEP_SECONDS, STEPS_PER_BAR, barEvents, type Bar, type NoteEvent } from './music/conductor';
+import { BAR_SECONDS, type Bar, barEvents, Conductor, type NoteEvent, STEP_SECONDS, STEPS_PER_BAR } from './music/conductor';
 import type { Arrangement } from './music/mapping';
 import type { Mode } from './music/theory';
 import type { Version } from './music/versions';

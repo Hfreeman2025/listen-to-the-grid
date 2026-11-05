@@ -1,15 +1,15 @@
 import { describe, expect, it } from 'vitest';
-import { mergeSeries, periodAt, sampleAt, upsertPeriods, type GridPeriod } from '../src/data/series';
 import type { GenerationPeriod, IntensityPeriod, Mix } from '../src/data/schema';
+import { type GridPeriod, mergeSeries, periodAt, sampleAt, upsertPeriods } from '../src/data/series';
 import {
-  HALF_HOUR,
   apiTimestamp,
+  HALF_HOUR,
   halfHourFloor,
+  isFresh,
   londonDay,
   londonDayStart,
   londonParts,
   londonYesterday,
-  isFresh,
   nextPollDelay,
 } from '../src/data/time';
 
@@ -39,7 +39,10 @@ describe('mergeSeries', () => {
   });
 
   it('drops periods missing from either side and sorts by time', () => {
-    const series = mergeSeries([gen(t0 + HALF_HOUR, 1, 99), gen(t0, 1, 99), gen(t0 + 2 * HALF_HOUR, 1, 99)], [int(t0, 100, 100), int(t0 + HALF_HOUR, 100, 100)]);
+    const series = mergeSeries(
+      [gen(t0 + HALF_HOUR, 1, 99), gen(t0, 1, 99), gen(t0 + 2 * HALF_HOUR, 1, 99)],
+      [int(t0, 100, 100), int(t0 + HALF_HOUR, 100, 100)],
+    );
     expect(series.map((p) => p.start)).toEqual([t0, t0 + HALF_HOUR]);
   });
 });
@@ -87,7 +90,11 @@ describe('sampleAt', () => {
 
 describe('upsertPeriods', () => {
   it('replaces matching periods, appends new ones and trims old ones', () => {
-    const merged = upsertPeriods([period(t0, 0.1, 100), period(t0 + HALF_HOUR, 0.1, 100)], [period(t0 + HALF_HOUR, 0.3, 90), period(t0 + 2 * HALF_HOUR, 0.4, 80)], t0 + HALF_HOUR);
+    const merged = upsertPeriods(
+      [period(t0, 0.1, 100), period(t0 + HALF_HOUR, 0.1, 100)],
+      [period(t0 + HALF_HOUR, 0.3, 90), period(t0 + 2 * HALF_HOUR, 0.4, 80)],
+      t0 + HALF_HOUR,
+    );
     expect(merged.map((p) => [p.start - t0, p.intensity])).toEqual([
       [HALF_HOUR, 90],
       [2 * HALF_HOUR, 80],

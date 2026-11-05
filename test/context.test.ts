@@ -9,7 +9,24 @@ function week(from: number, hours: number, skip: number[] = []): GridPeriod[] {
   for (let t = from, i = 0; t < from + hours * HOUR; t += HALF_HOUR, i++) {
     if (skip.includes(t)) continue;
     const k = (i % 48) / 48;
-    out.push({ start: t, end: t + HALF_HOUR, mix: { solar: 0, wind: 0.6 - 0.4 * k, hydro: 0.02, biomass: 0.08, imports: 0.1, nuclear: 0.12, other: 0.02, coal: 0, gas: 0.06 + 0.4 * k }, intensity: 30 + 240 * k, measured: true, index: 'moderate' });
+    out.push({
+      start: t,
+      end: t + HALF_HOUR,
+      mix: {
+        solar: 0,
+        wind: 0.6 - 0.4 * k,
+        hydro: 0.02,
+        biomass: 0.08,
+        imports: 0.1,
+        nuclear: 0.12,
+        other: 0.02,
+        coal: 0,
+        gas: 0.06 + 0.4 * k,
+      },
+      intensity: 30 + 240 * k,
+      measured: true,
+      index: 'moderate',
+    });
   }
   return out;
 }

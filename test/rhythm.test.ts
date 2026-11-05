@@ -1,5 +1,5 @@
 import { describe, expect, it } from 'vitest';
-import { beamGroups, rests, spell, type Piece } from '../src/notation/rhythm';
+import { beamGroups, type Piece, rests, spell } from '../src/notation/rhythm';
 
 const names = (pieces: Piece[]): string[] => pieces.map((p) => `${p.dotted ? 'dotted ' : ''}${p.value}@${p.start}`);
 
@@ -37,19 +37,46 @@ describe('rests', () => {
 
   it('fills the gaps around a sung phrase', () => {
     // crotchet, crotchet, then silence: a minim rest on beat 3.
-    expect(names(rests([{ start: 0, length: 4 }, { start: 4, length: 4 }]))).toEqual(['half@8']);
+    expect(
+      names(
+        rests([
+          { start: 0, length: 4 },
+          { start: 4, length: 4 },
+        ]),
+      ),
+    ).toEqual(['half@8']);
     // a note on beat 2 only: rests either side.
     expect(names(rests([{ start: 4, length: 4 }]))).toEqual(['quarter@0', 'half@8']);
     // a quaver figure in beat 3.
-    expect(names(rests([{ start: 8, length: 2 }, { start: 10, length: 2 }]))).toEqual(['half@0', 'quarter@12']);
+    expect(
+      names(
+        rests([
+          { start: 8, length: 2 },
+          { start: 10, length: 2 },
+        ]),
+      ),
+    ).toEqual(['half@0', 'quarter@12']);
   });
 });
 
 describe('beamGroups', () => {
   it('beams quavers within a beat and leaves crotchets alone', () => {
     const p = (start: number, length: number, value: Piece['value'], rest = false) => ({ start, length, value, dotted: false, rest });
-    const bar = [p(0, 2, 'eighth'), p(2, 2, 'eighth'), p(4, 4, 'quarter'), p(8, 1, 'sixteenth'), p(9, 1, 'sixteenth'), p(10, 1, 'sixteenth'), p(11, 1, 'sixteenth'), p(12, 2, 'eighth'), p(14, 2, 'eighth', true)];
-    expect(beamGroups(bar)).toEqual([[0, 1], [3, 4, 5, 6]]);
+    const bar = [
+      p(0, 2, 'eighth'),
+      p(2, 2, 'eighth'),
+      p(4, 4, 'quarter'),
+      p(8, 1, 'sixteenth'),
+      p(9, 1, 'sixteenth'),
+      p(10, 1, 'sixteenth'),
+      p(11, 1, 'sixteenth'),
+      p(12, 2, 'eighth'),
+      p(14, 2, 'eighth', true),
+    ];
+    expect(beamGroups(bar)).toEqual([
+      [0, 1],
+      [3, 4, 5, 6],
+    ]);
   });
 
   it('does not beam across a beat', () => {

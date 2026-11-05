@@ -43,7 +43,10 @@ const server = createServer(async (req, res) => {
   if (path === '/embed.js') return send('text/javascript', EMBED);
   if (path.startsWith('/vendor/radio/') && !path.includes('..')) {
     try {
-      return send(path.endsWith('.js') ? 'text/javascript' : 'text/plain', await readFile(new URL(path.slice('/vendor/radio/'.length), root)));
+      return send(
+        path.endsWith('.js') ? 'text/javascript' : 'text/plain',
+        await readFile(new URL(path.slice('/vendor/radio/'.length), root)),
+      );
     } catch {
       // falls through to 404
     }
@@ -62,7 +65,16 @@ function watchAudio() {
       window.__made.contexts.push(this);
     }
   };
-  for (const name of ['GainNode', 'OscillatorNode', 'AudioBufferSourceNode', 'BiquadFilterNode', 'ConvolverNode', 'DynamicsCompressorNode', 'WaveShaperNode', 'StereoPannerNode']) {
+  for (const name of [
+    'GainNode',
+    'OscillatorNode',
+    'AudioBufferSourceNode',
+    'BiquadFilterNode',
+    'ConvolverNode',
+    'DynamicsCompressorNode',
+    'WaveShaperNode',
+    'StereoPannerNode',
+  ]) {
     const Node = window[name];
     if (!Node) continue;
     window[name] = class extends Node {
@@ -88,21 +100,41 @@ for (const name of browsers) {
     const requests = [];
     page.on('request', (r) => requests.push(new URL(r.url())));
     page.on('console', (m) => {
-      if ((m.type() === 'error' || m.type() === 'warning') && !(neso !== 'ok' && /carbonintensity|Failed to load resource|status of 500|NetworkError|network connection/i.test(m.text()))) problems.push(`${name}: ${m.text()}`);
+      if (
+        (m.type() === 'error' || m.type() === 'warning') &&
+        !(neso !== 'ok' && /carbonintensity|Failed to load resource|status of 500|NetworkError|network connection/i.test(m.text()))
+      )
+        problems.push(`${name}: ${m.text()}`);
     });
     page.on('pageerror', (e) => problems.push(`${name}: ${e.message}`));
     await page.addInitScript(watchAudio);
     await page.route('https://api.carbonintensity.org.uk/**', async (route) => {
-      if (neso !== 'ok') return route.fulfill({ status: 500, contentType: 'application/json', body: '{"error":{"code":"500","message":"test"}}', headers: { 'access-control-allow-origin': '*' } });
+      if (neso !== 'ok')
+        return route.fulfill({
+          status: 500,
+          contentType: 'application/json',
+          body: '{"error":{"code":"500","message":"test"}}',
+          headers: { 'access-control-allow-origin': '*' },
+        });
       const key = route.request().url();
       if (!cache.has(key)) cache.set(key, await (await fetch(key)).text());
-      return route.fulfill({ status: 200, contentType: 'application/json', body: cache.get(key), headers: { 'access-control-allow-origin': '*' } });
+      return route.fulfill({
+        status: 200,
+        contentType: 'application/json',
+        body: cache.get(key),
+        headers: { 'access-control-allow-origin': '*' },
+      });
     });
     await page.goto(`http://127.0.0.1:${PORT}/${hash}`);
     if (touch) await page.waitForFunction(() => window.ready === true);
     return { context, page, requests };
   };
-  const made = (page) => page.evaluate(() => ({ contexts: window.__made.contexts.length, closed: window.__made.contexts.filter((c) => c.state === 'closed').length, nodes: window.__made.nodes }));
+  const made = (page) =>
+    page.evaluate(() => ({
+      contexts: window.__made.contexts.length,
+      closed: window.__made.contexts.filter((c) => c.state === 'closed').length,
+      nodes: window.__made.nodes,
+    }));
   const state = (page, which = 'radio') => page.evaluate((w) => window[w]?.state ?? null, which);
 
   try {
@@ -110,15 +142,32 @@ for (const name of browsers) {
       const { context, page, requests } = await open();
       await page.waitForTimeout(3000);
       const m = await made(page);
-      check(name, 'before play(): no audio context, no audio node, no request, state off', m.contexts === 0 && m.nodes === 0 && !requests.some((u) => u.host !== `127.0.0.1:${PORT}`) && (await state(page)).status === 'off', JSON.stringify(m));
+      check(
+        name,
+        'before play(): no audio context, no audio node, no request, state off',
+        m.contexts === 0 && m.nodes === 0 && !requests.some((u) => u.host !== `127.0.0.1:${PORT}`) && (await state(page)).status === 'off',
+        JSON.stringify(m),
+      );
 
       await page.click('#play');
-      await page.waitForFunction(() => window.radio.state.status === 'playing' || window.radio.state.status === 'failed', null, { timeout: 30000 });
+      await page.waitForFunction(() => window.radio.state.status === 'playing' || window.radio.state.status === 'failed', null, {
+        timeout: 30000,
+      });
       const playing = await state(page);
       const m2 = await made(page);
-      check(name, 'play() from a click: one audio context, the orchestra built, the half-hour named', playing.status === 'playing' && m2.contexts === 1 && m2.nodes > 10 && /^\d\d:\d\d–\d\d:\d\d (GMT|BST)/.test(playing.halfHour.label), `${playing.reason} | ${JSON.stringify(m2)}`);
+      check(
+        name,
+        'play() from a click: one audio context, the orchestra built, the half-hour named',
+        playing.status === 'playing' && m2.contexts === 1 && m2.nodes > 10 && /^\d\d:\d\d–\d\d:\d\d (GMT|BST)/.test(playing.halfHour.label),
+        `${playing.reason} | ${JSON.stringify(m2)}`,
+      );
       const neso = requests.filter((u) => u.host !== `127.0.0.1:${PORT}`);
-      check(name, 'fetches only from NESO, only what the piece fetches', neso.length > 0 && neso.every((u) => u.host === 'api.carbonintensity.org.uk' && PIECE_PATHS.test(u.pathname)), [...new Set(neso.map((u) => u.pathname))].join(' '));
+      check(
+        name,
+        'fetches only from NESO, only what the piece fetches',
+        neso.length > 0 && neso.every((u) => u.host === 'api.carbonintensity.org.uk' && PIECE_PATHS.test(u.pathname)),
+        [...new Set(neso.map((u) => u.pathname))].join(' '),
+      );
 
       await page.waitForTimeout(1500);
       await page.click('#stop');
@@ -126,13 +175,31 @@ for (const name of browsers) {
       const m3 = await made(page);
       await page.waitForTimeout(1500);
       const m4 = await made(page);
-      check(name, 'stop() closes the audio context and the orchestra stops', m3.closed === m3.contexts && m3.contexts === 1 && m4.nodes === m3.nodes, `${JSON.stringify(m3)} then ${m4.nodes} nodes`);
+      check(
+        name,
+        'stop() closes the audio context and the orchestra stops',
+        m3.closed === m3.contexts && m3.contexts === 1 && m4.nodes === m3.nodes,
+        `${JSON.stringify(m3)} then ${m4.nodes} nodes`,
+      );
 
       await page.click('#ossia');
-      await page.waitForFunction(() => window.ossia?.state.status === 'playing' && window.ossia.state.loudness && 'trimDb' in window.ossia.state.loudness, null, { timeout: 90000 }).catch(() => undefined);
+      await page
+        .waitForFunction(
+          () => window.ossia?.state.status === 'playing' && window.ossia.state.loudness && 'trimDb' in window.ossia.state.loudness,
+          null,
+          { timeout: 90000 },
+        )
+        .catch(() => undefined);
       const o = await state(page, 'ossia');
-      const worker = await page.evaluate(() => performance.getEntriesByType('resource').some((r) => /\/vendor\/radio\/assets\/loudness\.worker-[\w-]+\.js$/.test(r.name)));
-      check(name, 'the ossia, loudness-matched with BS.1770 as in the piece, its worker found beside the module', o?.status === 'playing' && o.loudness?.trimDb < 0 && o.loudness.trimDb > -6 && worker && /hypothetical/.test(o.reason), o ? `${o.loudness ? JSON.stringify(o.loudness) : 'unmatched'}, worker ${worker}` : 'no state');
+      const worker = await page.evaluate(() =>
+        performance.getEntriesByType('resource').some((r) => /\/vendor\/radio\/assets\/loudness\.worker-[\w-]+\.js$/.test(r.name)),
+      );
+      check(
+        name,
+        'the ossia, loudness-matched with BS.1770 as in the piece, its worker found beside the module',
+        o?.status === 'playing' && o.loudness?.trimDb < 0 && o.loudness.trimDb > -6 && worker && /hypothetical/.test(o.reason),
+        o ? `${o.loudness ? JSON.stringify(o.loudness) : 'unmatched'}, worker ${worker}` : 'no state',
+      );
       await page.evaluate(() => window.ossia?.stop());
       await context.close();
     }
@@ -144,18 +211,37 @@ for (const name of browsers) {
       const gesture = await page.evaluate(() => 'userActivation' in navigator);
       const s = await state(page);
       const m = await made(page);
-      if (gesture) check(name, 'play() without a click or key press is refused, and makes nothing', s.status === 'failed' && /click or key press/.test(s.reason) && m.contexts === 0, `${s.reason} | ${JSON.stringify(m)}`);
-      else check(name, 'play() without a click: no userActivation here, so the browser’s own autoplay rule applies', true, `${s.status}: ${s.reason}`);
+      if (gesture)
+        check(
+          name,
+          'play() without a click or key press is refused, and makes nothing',
+          s.status === 'failed' && /click or key press/.test(s.reason) && m.contexts === 0,
+          `${s.reason} | ${JSON.stringify(m)}`,
+        );
+      else
+        check(
+          name,
+          'play() without a click: no userActivation here, so the browser’s own autoplay rule applies',
+          true,
+          `${s.status}: ${s.reason}`,
+        );
       await context.close();
     }
     {
       const { context, page } = await open({ neso: 'failing' });
       await page.click('#play');
-      await page.waitForFunction(() => window.radio.state.status !== 'loading' && window.radio.state.status !== 'off', null, { timeout: 30000 });
+      await page.waitForFunction(() => window.radio.state.status !== 'loading' && window.radio.state.status !== 'off', null, {
+        timeout: 30000,
+      });
       await page.waitForTimeout(500);
       const failed = await state(page);
       const m = await made(page);
-      check(name, 'no live figures: fails, says why, and makes no sound', failed.status === 'failed' && /NESO/.test(failed.reason) && m.nodes === 0 && m.closed === m.contexts, `${failed.reason} | ${JSON.stringify(m)}`);
+      check(
+        name,
+        'no live figures: fails, says why, and makes no sound',
+        failed.status === 'failed' && /NESO/.test(failed.reason) && m.nodes === 0 && m.closed === m.contexts,
+        `${failed.reason} | ${JSON.stringify(m)}`,
+      );
       await context.close();
     }
   } catch (err) {

@@ -7,7 +7,10 @@ import type * as Source from '../src/radio';
 const state: [Shipped.RadioState, Source.RadioState] = [null as unknown as Source.RadioState, null as unknown as Shipped.RadioState];
 const options: [Shipped.RadioOptions, Source.RadioOptions] = [{} as Source.RadioOptions, {} as Shipped.RadioOptions];
 const radio: [Shipped.Radio, Source.Radio] = [null as unknown as Source.Radio, null as unknown as Shipped.Radio];
-const create: [typeof Shipped.createRadio, typeof Source.createRadio] = [null as unknown as typeof Source.createRadio, null as unknown as typeof Shipped.createRadio];
+const create: [typeof Shipped.createRadio, typeof Source.createRadio] = [
+  null as unknown as typeof Source.createRadio,
+  null as unknown as typeof Shipped.createRadio,
+];
 
 describe('the radio’s declaration file', () => {
   it('matches the module (checked by the type checker)', () => {

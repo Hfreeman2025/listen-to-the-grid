@@ -1,9 +1,19 @@
 import { describe, expect, it } from 'vitest';
-import { clock, describeIntensity, describeMix, headline, longDay, percent, periodLabel, ranked, shortDay, zone } from '../src/ui/format';
 import type { Mix } from '../src/data/schema';
+import { clock, describeIntensity, describeMix, headline, longDay, percent, periodLabel, ranked, shortDay, zone } from '../src/ui/format';
 
 // The live mix on Sunday 1 November 2026, 10:00–10:30 GMT.
-const sunday: Mix = { biomass: 0.102, coal: 0, imports: 0.177, gas: 0.326, nuclear: 0.156, other: 0.009, hydro: 0.021, solar: 0.115, wind: 0.095 };
+const sunday: Mix = {
+  biomass: 0.102,
+  coal: 0,
+  imports: 0.177,
+  gas: 0.326,
+  nuclear: 0.156,
+  other: 0.009,
+  hydro: 0.021,
+  solar: 0.115,
+  wind: 0.095,
+};
 
 describe('UK time labels', () => {
   it('prints GMT in winter and BST in summer', () => {
@@ -40,7 +50,9 @@ describe('plain-words mix', () => {
   });
 
   it('reads the whole mix as one sentence, naming what is off', () => {
-    expect(describeMix(sunday)).toBe('33% gas, 18% imports, 16% nuclear, 12% solar, 10% biomass, 10% wind, 2% hydro and 1% other; no coal.');
+    expect(describeMix(sunday)).toBe(
+      '33% gas, 18% imports, 16% nuclear, 12% solar, 10% biomass, 10% wind, 2% hydro and 1% other; no coal.',
+    );
   });
 
   it('writes a headline from the largest sources and the mode', () => {
@@ -53,12 +65,20 @@ describe('plain-words mix', () => {
 
   it('names the region when listening from one', () => {
     const windy: Mix = { ...sunday, wind: 0.943, gas: 0, solar: 0.057 };
-    expect(headline(windy, 'lydian', 'North Scotland')).toBe('In North Scotland the grid is running mostly on wind, so it plays in D Lydian, luminously.');
-    expect(describeIntensity({ intensity: 0, measured: false, index: 'very low' }, true)).toBe('0 g of CO₂ per kWh, modelled (NESO estimates its regional figures); NESO rates that very low.');
+    expect(headline(windy, 'lydian', 'North Scotland')).toBe(
+      'In North Scotland the grid is running mostly on wind, so it plays in D Lydian, luminously.',
+    );
+    expect(describeIntensity({ intensity: 0, measured: false, index: 'very low' }, true)).toBe(
+      '0 g of CO₂ per kWh, modelled (NESO estimates its regional figures); NESO rates that very low.',
+    );
   });
 
   it('says whether intensity is measured or forecast', () => {
-    expect(describeIntensity({ intensity: 165, measured: true, index: 'moderate' })).toBe('165 g of CO₂ per kWh, measured; NESO rates that moderate.');
-    expect(describeIntensity({ intensity: 173, measured: false, index: 'high' })).toBe('173 g of CO₂ per kWh, forecast (the measured figure is not out yet); NESO rates that high.');
+    expect(describeIntensity({ intensity: 165, measured: true, index: 'moderate' })).toBe(
+      '165 g of CO₂ per kWh, measured; NESO rates that moderate.',
+    );
+    expect(describeIntensity({ intensity: 173, measured: false, index: 'high' })).toBe(
+      '173 g of CO₂ per kWh, forecast (the measured figure is not out yet); NESO rates that high.',
+    );
   });
 });

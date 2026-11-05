@@ -1,6 +1,6 @@
 import { FUELS, type Fuel, type Mix } from '../data/schema';
 import { MODE_LADDER } from '../music/harmony';
-import { NOTE_NAMES, pitchClasses, type Mode } from '../music/theory';
+import { type Mode, NOTE_NAMES, pitchClasses } from '../music/theory';
 import { FUEL_NAMES, MODE_NAMES, percent } from './format';
 
 interface VoiceNote {
@@ -9,7 +9,7 @@ interface VoiceNote {
 }
 
 /** Programme notes: what each voice is, and what moves it. */
-export const VOICE_NOTES: Record<Fuel, VoiceNote> = {
+const VOICE_NOTES: Record<Fuel, VoiceNote> = {
   wind: {
     kind: 'a slowly evolving pad',
     text: 'Four held voices that slide from chord to chord, with the hiss of moving air underneath. More wind makes it louder and wider, opens its filter and sets it swaying faster.',
@@ -89,11 +89,15 @@ export function updateVoiceShares(refs: Map<Fuel, { share: HTMLElement }>, mix: 
     const ref = refs.get(fuel);
     if (!ref) continue;
     const s = mix[fuel];
-    ref.share.textContent = s > 0 ? `${percent(s)} of generation ${label}.` : `Silent ${label}: ${FUEL_NAMES[fuel].toLowerCase()} isn’t generating.`;
+    ref.share.textContent =
+      s > 0 ? `${percent(s)} of generation ${label}.` : `Silent ${label}: ${FUEL_NAMES[fuel].toLowerCase()} isn’t generating.`;
   }
 }
 
-const scaleText = (mode: Mode): string => pitchClasses(mode).map((pc) => NOTE_NAMES[pc]).join(' ');
+const scaleText = (mode: Mode): string =>
+  pitchClasses(mode)
+    .map((pc) => NOTE_NAMES[pc])
+    .join(' ');
 
 /**
  * The key rule in one plain sentence, straight from the ladder: "The cleaner

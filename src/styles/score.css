@@ -1,0 +1,94 @@
+/* The score */
+
+.score {
+  max-width: var(--measure);
+  margin: 0 auto;
+  padding: 0 var(--gutter);
+}
+.score-head {
+  display: flex;
+  flex-wrap: wrap;
+  justify-content: space-between;
+  align-items: flex-start;
+  gap: 0.2rem 2rem;
+  padding-top: 10px;
+  min-height: 3.1rem;
+}
+.score-head p {
+  margin: 0;
+}
+.key {
+  font-family: var(--sans);
+  font-style: italic;
+  font-size: 1.15rem;
+}
+/* Wide enough for its longest line ("Wednesday 30 September 2026, 23:30–00:00 BST"), so its left edge
+   stays put when the date arrives after the first paint. */
+.credit {
+  min-width: 27rem;
+  font-family: var(--sans);
+  font-size: 1rem;
+  color: var(--ink-soft);
+  text-align: right;
+}
+.credit > span {
+  display: block;
+}
+.credit-line {
+  color: var(--ink);
+}
+.credit label {
+  cursor: pointer;
+}
+.credit select {
+  font: inherit;
+  color: var(--ink);
+  background: transparent;
+  border: 0;
+  border-bottom: 1px solid var(--ink);
+  border-radius: 0;
+  padding: 0 1.1em 0.05em 0.1em;
+  margin: 0;
+  cursor: pointer;
+  -webkit-appearance: none;
+  appearance: none;
+  background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 10 6'%3E%3Cpath d='M1 1l4 4 4-4' fill='none' stroke='%231a1714' stroke-width='1.4'/%3E%3C/svg%3E");
+  background-repeat: no-repeat;
+  background-position: right 0.15em center;
+  background-size: 0.62em;
+  field-sizing: content;
+}
+.credit select:disabled {
+  color: var(--ink-soft);
+  border-bottom-style: dotted;
+  cursor: default;
+}
+#when-short {
+  font-size: 0.86rem;
+  font-variant-numeric: lining-nums tabular-nums;
+}
+.credit.replaying #when-short {
+  font-family: var(--mono);
+  font-style: normal;
+  font-weight: 600;
+  font-size: 1.3rem;
+  color: var(--ink);
+  letter-spacing: 0.01em;
+}
+
+.stage {
+  position: relative;
+}
+#cursor {
+  position: absolute;
+  inset: 0;
+  width: 100%;
+  height: 100%;
+  pointer-events: none;
+}
+#score {
+  display: block;
+  width: 100%;
+  height: clamp(440px, calc(100vh - 196px), 860px);
+  height: clamp(440px, calc(100svh - 196px), 860px);
+}
