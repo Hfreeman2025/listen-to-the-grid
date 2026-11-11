@@ -1,0 +1,21 @@
+# Response headers for the hosted piece on Cloudflare Pages (README, Hosting). The build applies the
+# indexing switch (hosting.config.json, SITE_INDEXABLE: true drops the X-Robots-Tag line) and `vite preview`
+# serves the /* rule, so local checks run under the same policy. The Content-Security-Policy allows exactly
+# the origins and kinds of request measured in Chromium, WebKit and Firefox (npm run check:hosted -- measure).
+# style-src-attr 'none' refuses the one inline style ever seen: WebKit's own, inside a native <select>, which
+# changes nothing a visitor sees (README, Hosting).
+# "! Access-Control-Allow-Origin" removes the header Pages adds by default: nothing here is for other sites
+# to read. Comments stay outside rule blocks, where Pages reads every indented line as a header.
+
+/*
+  Content-Security-Policy: default-src 'none'; script-src 'self'; style-src 'self'; style-src-attr 'none'; font-src 'self'; img-src 'self' data:; connect-src https://api.carbonintensity.org.uk; worker-src 'self'; base-uri 'none'; form-action 'none'; frame-ancestors 'none'; object-src 'none'
+  X-Robots-Tag: noindex, nofollow
+  Referrer-Policy: strict-origin-when-cross-origin
+  X-Content-Type-Options: nosniff
+  Permissions-Policy: camera=(), microphone=(), geolocation=()
+  Strict-Transport-Security: max-age=31536000; includeSubDomains
+  ! Access-Control-Allow-Origin
+
+# Vite names these by content hash, so they never change under the same URL.
+/assets/*
+  Cache-Control: public, max-age=31536000, immutable

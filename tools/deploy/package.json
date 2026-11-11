@@ -1,0 +1,10 @@
+{
+  "name": "listen-to-the-grid-deploy",
+  "version": "0.1.0",
+  "private": true,
+  "description": "Deploy tooling for the hosted piece: wrangler, pinned exactly, with its own lockfile. Kept apart from the piece's dependencies because wrangler brings LGPL-3.0 and CC0 packages (sharp's libvips, via miniflare) that npm run licences does not allow; none of it is ever in dist/.",
+  "license": "MIT",
+  "devDependencies": {
+    "wrangler": "4.158.0"
+  }
+}

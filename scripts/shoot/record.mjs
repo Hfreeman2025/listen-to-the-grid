@@ -17,10 +17,16 @@ export async function shootRecord({ browser, full, sizes, h }) {
       const started = Date.now();
       await page.click('#record-press');
       if (size === 'desktop') {
+        // Mid-press: a percentage, or in Firefox, which reports no progress, a running count of seconds. A
+        // press that finishes first ends the wait too, so the time below is the press, not this wait.
         await page
-          .waitForFunction(() => /Pressing .*: [1-9]\d?%/.test(document.querySelector('#record-status')?.textContent ?? ''), null, {
-            timeout: 60000,
-          })
+          .waitForFunction(
+            () =>
+              /Pressing .*(: [1-9]\d?%|… [1-9]\d* s)/.test(document.querySelector('#record-status')?.textContent ?? '') ||
+              !document.querySelector('#record-result')?.hidden,
+            null,
+            { timeout: 60000 },
+          )
           .catch(() => undefined);
         await shot(`record-pressing-${size}.png`);
       }

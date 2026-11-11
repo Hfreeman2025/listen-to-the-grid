@@ -89,6 +89,14 @@ export async function createHarness({ base, outDir, only }) {
       (browserName === 'webkit' &&
         /^The resource \S+\/fonts\/(ibm-plex-sans-latin-(400|500)-normal|ibm-plex-sans-condensed-latin-600-normal)\.woff2 was preloaded using link preload but not used/.test(
           text,
+        )) ||
+      // WebKit's native <select> sets a style attribute inside itself, which the
+      // policy's style-src-attr 'none' refuses with no visible change. The hosted
+      // check (scripts/hosted-check.mjs) proves that is the only such refusal, from
+      // the policy's own reports; here, without reports, the message is allowed.
+      (browserName === 'webkit' &&
+        /^Refused to apply a stylesheet because its hash, its nonce, or 'unsafe-inline' does not appear in the style-src directive of the Content Security Policy\.$/.test(
+          text,
         ));
     page.on('pageerror', (e) => problems.push(`${browserName} ${name}/${size}: ${e.message}`));
     page.on('request', (r) => {

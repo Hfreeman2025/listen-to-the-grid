@@ -28,7 +28,10 @@
     "perf": "node scripts/perf.mjs",
     "og": "node scripts/og.mjs",
     "silence": "node scripts/silence-check.mjs",
-    "radio:check": "node scripts/radio-check.mjs"
+    "radio:check": "node scripts/radio-check.mjs",
+    "check:predeploy": "node scripts/predeploy-check.mjs",
+    "check:hosted": "node scripts/hosted-check.mjs",
+    "deploy": "node scripts/deploy.mjs"
   },
   "dependencies": {
     "zod": "^4.6.7"
@@ -36,6 +39,7 @@
   "devDependencies": {
     "@biomejs/biome": "2.6.4",
     "@eslint/js": "~9.39.1",
+    "@types/node": "22.20.5",
     "eslint": "~9.39.5",
     "globals": "^17.13.0",
     "playwright": "^1.64.1",

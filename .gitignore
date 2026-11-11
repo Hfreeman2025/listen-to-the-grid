@@ -24,9 +24,11 @@ blob-report/
 *.profile/
 browser-profile*/
 
-# Keys and other secrets
+# Keys and other secrets, and wrangler's local state
 .env
 .env.*
+.dev.vars
+.wrangler/
 *.pem
 *.key
 *.p12

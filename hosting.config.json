@@ -1,0 +1,8 @@
+{
+  "$comment": "Where the piece is hosted (README, Hosting). SITE_INDEXABLE is the one indexing switch: false sends X-Robots-Tag noindex, nofollow on every response and a robots.txt that disallows everything; true drops both. account is the only Cloudflare login npm run deploy accepts.",
+  "origin": "https://listen.harryfreeman.dev",
+  "project": "listen-to-the-grid",
+  "branch": "main",
+  "account": "harryfreeman2000@icloud.com",
+  "SITE_INDEXABLE": false
+}

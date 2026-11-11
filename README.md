@@ -10,6 +10,8 @@ can be pressed as a one-minute record with its score as the sleeve, and an *ossi
 renewable grid, loudness-matched so the comparison is fair. It is a way to hear what the grid is doing, and how
 much of it is gas right now, without reading a chart.
 
+**Live:** [listen.harryfreeman.dev](https://listen.harryfreeman.dev)
+
 ![The live score: the half-hours just past engraved, the live half-hour being written under a red cursor](docs/live.png)
 
 ## Try it
@@ -27,8 +29,8 @@ account, no server of its own. If the API can't be reached, the page says it is 
 recording of a real day, labelled with that day's date. No model or other download is involved.
 
 ```sh
-npm run build     # the static site, in dist/: about 71 kB of gzipped JavaScript
-npm run preview
+npm run build     # the static site, in dist/: about 71 kB of gzipped JavaScript, with its _headers
+npm run preview   # served with the hosted headers, the Content-Security-Policy among them
 ```
 
 Link to a region with `?region=north-scotland`, `?region=london` and so on (the slugs are in `src/data/regions.ts`).
@@ -47,6 +49,7 @@ npm run measure       # offline renders: levels, clipping, clicks, phrasing, bri
 node scripts/measure-audio.mjs --loudness   # how fair the ossia's loudness match is
 npm run perf          # first engraved paint and frame cost during a replay
 npm run silence       # macOS only: proves no browser the scripts drive opens an audio device
+npm run check:hosted  # the build as Cloudflare Pages serves it, its policy enforced (see Hosting)
 ```
 
 Every browser these scripts launch is silent (`scripts/silent.mjs`): the page gets an AudioContext with no output,
@@ -123,10 +126,13 @@ NESO Carbon Intensity API ──> zod schemas ──> half-hour series ──> a
 - **The behaviour holds in three engines.** `npm run shots`: 77 checks in Chromium (both sizes), 39 in WebKit and 39
   in Firefox, with zero console errors. `npm run radio:check`: 7 of 7 in each, including that `play()` is the only
   path to sound and that, when NESO can't be reached, the radio fails with a reason and makes no sound.
-- **Unit tests:** 183, asserting concrete values for the tricky core: schemas against real responses, UK days
+- **The policy is measured, then enforced.** In three browsers, every request the piece makes is a script, worker,
+  stylesheet, font or image from its own origin (and one inline SVG image), or a fetch from NESO; enforced, the
+  policy refuses nothing the piece needs (see Hosting).
+- **Unit tests:** 218, asserting concrete values for the tricky core: schemas against real responses, UK days
   across clock changes, the conductor (in key, spellable rhythms, phrases that come home), rhythm spelling, key
   signatures, hairpins and ties across bar lines, the half-hours before now, the ossia's mix, the loudness meter
-  and trim, and the WAV writer.
+  and trim, the WAV writer, and every rule of the hosting gate and the deploy's login check.
 
 ## Limits
 
@@ -140,12 +146,75 @@ NESO Carbon Intensity API ──> zod schemas ──> half-hour series ──> a
 - Loudness matching equalises integrated loudness, not timbre: the ossia still sounds brighter, by design. The
   first switch can use the provisional trim for a few seconds while a moment is measured (1.5 to 7 s, depending on
   the machine and browser).
-- Records render in about 3 seconds in WebKit and 5 to 12 in Chromium, but about a minute in Firefox, whose offline
-  audio runs at roughly real time.
+- A record takes a few seconds to press on a recent laptop: 6.2 s in Chromium, 5.9 s in WebKit and 5.1 s in
+  Firefox in the browser suite on 11 November 2026, and longer on a slower machine.
 - Sound needs a click or key press first, as every browser requires, and the page needs JavaScript.
 - The browser suites need the network and run locally only; the silence check needs macOS. Served by Vite's
   preview server, WebKit warns that the three preloaded fonts were fetched twice; on a plain static server it
-  doesn't, and the suite allows that one message for those three files only.
+  doesn't, and the suite allows that one message for those three files only. It also allows WebKit's message
+  refusing its own `<select>` style, which the hosted check pins down from the policy's reports (see Hosting).
+
+## Hosting
+
+The piece is the static build of this repository on Cloudflare Pages, project `listen-to-the-grid`, on Harry's
+personal Cloudflare account, served at https://listen.harryfreeman.dev (and `listen-to-the-grid.pages.dev`).
+[hosting.config.json](hosting.config.json) says where, which Cloudflare login may deploy, and holds the one indexing
+switch. Everything public is `dist/` after `npm run build`: the page, its script, stylesheet and loudness worker,
+the fonts and their licences, the icons, `_headers`, `robots.txt` and a 404 page. No source maps, no source, nothing
+from Harry's machine. All sound is made in the browser, so there are no media files, and Pages ignoring byte ranges
+does not matter here: a pressed record plays from memory, and its WAV is a `blob:` download.
+
+**Headers** ([public/_headers](public/_headers), the only copy of the policy; `vite preview` serves it too). The
+Content-Security-Policy allows exactly what was measured on 11 November 2026 (`npm run check:hosted -- measure`):
+wrangler's own Pages emulation served `dist/` with every request reported under a report-only `default-src 'none'`,
+while Chromium, WebKit and Firefox played the score, switched the ossia on and off with its loudness matched in the
+worker, replayed a day, changed region, pressed a record, played it, downloaded both files and opened a missing page.
+
+| Directive | Allows | Measured |
+|---|---|---|
+| `script-src` | `'self'` | the page's script |
+| `worker-src` | `'self'` | the loudness worker |
+| `style-src` | `'self'` | the stylesheet and the fonts' stylesheet |
+| `font-src` | `'self'` | IBM Plex and Noto Music |
+| `img-src` | `'self' data:` | the icons, and the region menu's arrow, an inline SVG in the stylesheet |
+| `connect-src` | `https://api.carbonintensity.org.uk` | NESO's figures, national and regional |
+
+Everything else is `'none'`: `default-src`, `object-src`, `base-uri`, `form-action`, `frame-ancestors` and
+`style-src-attr`. Nothing is allowed inline. The one inline item ever reported is WebKit's own: its native
+`<select>` sets a style attribute inside itself (no file, line or sample in the report; a bare `<select>` on an
+empty page does the same). Refused, it changes nothing: the menu's pixels are identical with it allowed. So the
+policy keeps refusing it, and the enforced check lists exactly that report apart, in WebKit only, one console line
+for each report. Enforced (`npm run check:hosted`), all three browsers pass every part with 0 violations from the
+piece and no console errors. Also on every response: `X-Robots-Tag: noindex, nofollow` (while indexing is off),
+`Referrer-Policy: strict-origin-when-cross-origin`, `X-Content-Type-Options: nosniff`, a `Permissions-Policy`
+denying camera, microphone and geolocation, HSTS, and no `Access-Control-Allow-Origin`; hashed `/assets/` are
+cached as immutable.
+
+**Indexing.** `SITE_INDEXABLE` in `hosting.config.json` is the one switch: while it is `false`, every response
+carries `X-Robots-Tag: noindex, nofollow` and `robots.txt` disallows everything; set it to `true`, commit and
+redeploy, and both go together.
+
+**The gate** (`npm run check:predeploy`; rules in `src/hosting/gate.ts`, unit-tested in `test/hosting.test.ts`)
+reads every file in `dist/` and fails closed on: a name from a denylist kept outside every repository
+(`~/Personal/.site-gate/denylist.txt`; case-insensitive whole words; it stops if the list is missing, empty or in a
+repository, and reports only how many names it checked and how many hit); home paths, localhost and 127.0.0.1,
+plain `http://` URLs, source maps, `.env` files, email addresses and key-shaped strings; a file over Pages' 25 MiB;
+a loose or missing header, `robots.txt` out of step with the switch, and any inline script, style attribute or
+`<meta>` policy in a page. Its one exception is three strings inside the bundled zod: JSON Schema identifiers and
+the string it hands to `new URL()` to check an IPv6 address, none of them fetched. Then it runs the typecheck,
+the lint and the unit tests.
+
+**Deploy** (`npm run deploy`, `scripts/deploy.mjs`): refuses uncommitted changes; builds and runs the gate;
+refuses unless wrangler is logged in as exactly the account in `hosting.config.json`, with one Cloudflare account;
+refuses unless the Pages project exists (it never creates one: the project was created once as classic Pages);
+deploys `dist/` to production and prints the URLs. wrangler 4.158.0 is pinned in `tools/deploy/` with its own
+lockfile, apart from the piece's dependencies, because it brings LGPL-3.0 and CC0 packages the licence check does
+not allow; none of it reaches `dist/`. Its telemetry is off. `npm run deploy -- --check` does everything but
+deploy.
+
+**The domain** is attached once in Cloudflare: Workers & Pages → `listen-to-the-grid` → Custom domains →
+`listen.harryfreeman.dev`. **To take it down,** remove the custom domain there, then delete the project (Settings →
+Delete project). One bad deployment can be rolled back instead: Deployments → an earlier one → Rollback.
 
 ## How it was built
 
